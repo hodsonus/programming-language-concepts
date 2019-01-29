@@ -5,7 +5,7 @@ exprList: topExpr ( ';' topExpr)* ';'? ;
 varDef: VAR ID '=' expr;
 
 topExpr: expr
-    { System.out.println("result: "+ Integer.toString($expr.i));}
+    { System.out.println("result: "+ Integer.toString($expr.i)); }
 ;
 
 expr returns [int i]:
@@ -21,5 +21,5 @@ expr returns [int i]:
 VAR: 'var';  // keyword
 
 ID: [_A-Za-z]+;
-INT: [0-9]+ ;
-WS : [ \t\r\n]+ -> skip ;
+INT: [0-9]+;
+WS: [ \t\r\n]+ -> skip ;

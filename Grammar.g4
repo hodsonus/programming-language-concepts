@@ -1,27 +1,20 @@
-// antlr4 Grammar.g4 && javac Grammar*.java &&
-
 /*
-O - Block Comments
+X - Block/InLine Comments
 X - Basic expressions with variables
 X - Boolean Expressions
 X - Precedence
 O - Special Expression: read and sqrt
-O - Statements: expressions (print value on the screen when executed), print expressions
+X - Statements: expressions (print value on the screen when executed), print expressions
 O - Math library functions: s, c, l, e (no need for a and j)
 */
 
 grammar Grammar;
 
-//comment: BSLASH ASTER .* ASTER BSLASH;
-
 exprList: (topExpr ';'? NL)+;
 
 varDef: VAR ID '=' expr;
 
-topExpr:
-    expr { System.out.println($expr.i); }
-    | NL
-    ;
+topExpr: expr { System.out.println($expr.i); } | NL ;
 
 expr returns [double i]:
     | '++' e=expr { $i=$e.i++; }
@@ -48,11 +41,12 @@ expr returns [double i]:
     | ID
     ;
 
+BlockComment: '/*' .* '*/' -> skip;
+InlineComment: '#' .* NL -> skip;
+
 VAR: 'var';  // keyword
 
 ID: [_A-Za-z]+;
 INT: [0-9]+ ;
 WS: [ \t\r]+ -> skip;
 NL: [\n];
-//BSLASH: \/;
-//ASTER: \*;
