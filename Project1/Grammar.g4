@@ -3,7 +3,7 @@
 // grun Grammar expr [-tree] [-gui] input.txt
 
 
-// BONUS - 
+// BONUS -
 // 	Arrays - extra 10%
 // 		how do you implement arrays
 // 		how do you differentiate between arrays and ints
@@ -37,15 +37,25 @@ varDef: VAR ID '=' expr;
 
 topExpr: expr { System.out.println(Double.toString($expr.i)); } ;
 expr returns [double i]:
-    | '++' e=expr { $i= $e.i++; }
-    | '--' e=expr { $i= $e.i--; }
+    op=('++'|'--') e=expr {
+        if($op.getText().equals("++"))
+            $i=++$e.i;
+        else
+            $i=--$e.i;
+    }
+    | e=expr op=('++'|'--') {
+        if($op.getText().equals("++"))
+            $i=$e.i++;
+        else
+            $i=$e.i--;
+    }
     | '-' e=expr { $i= -$e.i; }
     | el=expr op='^' er=expr { $i=Math.pow($el.i,$er.i); }
     | el=expr op=('*'|'/'|'%') er=expr {
         if ($op.getText().equals("*"))
             $i=$el.i*$er.i;
         else if ($op.getText().equals("%"))
-            $i=$el.i % $er.i;
+            $i=$el.i%$er.i;
         else
             $i=$el.i/$er.i;
     }
@@ -56,7 +66,6 @@ expr returns [double i]:
             $i=$el.i-$er.i;
     }
     | el=expr op=( '<=' |'<'|'>='|'>'|'=='|'!=') er=expr {
-        //TODO, this needs to be looked at (can't recall compiler error off the top of my head)
         if ($op.getText().equals("<="))
             $i = ($el.i <= $er.i) ? 1:0;
         else if ($op.getText().equals("<"))
@@ -76,7 +85,7 @@ expr returns [double i]:
     // | el=expr op='||' er=expr { $i=$el.i || $er.i; }
     | INT { $i=Integer.parseInt($INT.text); }
     | '(' e=expr ')'
-    | ID
+    | ID { /*Hash Map symbol table*/ }
     ;
 
 BlockComment: '/*' .*? '*/' -> skip;
