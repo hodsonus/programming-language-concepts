@@ -79,10 +79,9 @@ expr returns [double i]:
         else // $op.getText().equals("!=")
             $i = ($el.i != $er.i) ? 1:0;
     }
-    //TODO, this needs to cast from double -> boolean -> double to interpret
-    // | '!' e=expr { $i=($e.i!=0)?1:0; }
-    // | el=expr op='&&' er=expr { $i=($el.i && $er.i; }
-    // | el=expr op='||' er=expr { $i=$el.i || $er.i; }
+    | '!' e=expr { $i= ($e.i!=0) ? 1:0; }
+    | el=expr op='&&' er=expr { $i= (($el.i != 0) && ($er.i != 0)) ? 1:0; }
+    | el=expr op='||' er=expr { $i= (($el.i != 0) || ($er.i != 0)) ? 1:0; }
     | INT { $i=Integer.parseInt($INT.text); }
     | '(' e=expr ')'
     | ID { /*Hash Map symbol table*/ }
