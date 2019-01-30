@@ -1,0 +1,4 @@
+# test inline comment
+/* test block comment */
+2+2
+1+1
