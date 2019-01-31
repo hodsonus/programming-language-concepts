@@ -11,13 +11,13 @@
 // 		bonus can damage the main project, consider branching after project completion
 // 	Arbitrary precision - extra 10%
 
-// O - Block/InLine Comments, need to reconsider how we handle topExpr as it spits out 0.0 for comments
-// O - Basic expressions with variables
-// O - Boolean Expressions
-// X - Precedence
-// O - Special Expression: read and sqrt
-// X - Statements: expressions (print value on the screen when executed), print expressions
-// O - Math library functions: s, c, l, e (no need for a and j)
+// X - Block/InLine Comments
+//   - Basic expressions with variables
+// X - Boolean Expressions
+//   - Precedence
+//   - Special Expression: read and sqrt
+//   - Statements: expressions (print value on the screen when executed), print expressions
+//   - Math library functions: s, c, l, e (no need for a and j)
 
 grammar Grammar;
 
@@ -31,7 +31,7 @@ grammar Grammar;
     HashMap<String, Double> glob = new HashMap<String, Double>();
 }
 
-exprList: (topExpr ';'? NL)+; // TODO, <EOF> ?
+exprList: (topExpr ((';'|NL)+|EOF))+;
 
 varDef: VAR ID '=' expr;
 
@@ -84,20 +84,20 @@ expr returns [double i]:
         else // $op.getText().equals("!=")
             $i = ($el.i != $er.i) ? 1:0;
     }
-    | '!' e=expr { $i= ($e.i!=0) ? 1:0; }
+    | '!' e=expr { $i= ($e.i!=0) ? 0:1; }
     | el=expr op='&&' er=expr { $i= (($el.i != 0) && ($er.i != 0)) ? 1:0; }
     | el=expr op='||' er=expr { $i= (($el.i != 0) || ($er.i != 0)) ? 1:0; }
     | INT { $i=Integer.parseInt($INT.text); }
     | '(' e=expr ')'
-    | ID { 
+    | ID {
         String key = $ID.getText();
         Double val = glob.get(key);
         $i = (val == null) ? 0 : val;
     }
     ;
 
-BlockComment: '/*' .*? '*/' -> skip;
-InlineComment: '#' .*? NL -> skip;
+BLOCK_COMMENT: '/*'.*?'*/' -> skip;
+INLINE_COMMENT: '#'.*?~[\r\n]* -> skip;
 
 VAR: 'var'; // keyword
 
