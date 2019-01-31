@@ -65,6 +65,11 @@ expr returns [double i]:
         else
             $i=$el.i-$er.i;
     }
+    | ID '=' e=expr {
+        String key = $ID.getText();
+        double val = $e.i;
+        glob.put(key,val);
+    }
     | el=expr op=( '<=' |'<'|'>='|'>'|'=='|'!=') er=expr {
         if ($op.getText().equals("<="))
             $i = ($el.i <= $er.i) ? 1:0;
@@ -84,7 +89,11 @@ expr returns [double i]:
     | el=expr op='||' er=expr { $i= (($el.i != 0) || ($er.i != 0)) ? 1:0; }
     | INT { $i=Integer.parseInt($INT.text); }
     | '(' e=expr ')'
-    | ID { /*Hash Map symbol table*/ }
+    | ID { 
+        String key = $ID.getText();
+        Double val = glob.get(key);
+        $i = (val == null) ? 0 : val;
+    }
     ;
 
 BlockComment: '/*' .*? '*/' -> skip;
