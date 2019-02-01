@@ -17,7 +17,7 @@
 // X - Precedence
 //   - Special Expression: read and sqrt
 // X - Statements: expressions (print value on the screen when executed), print expressions
-//   - Math library functions: s, c, l, e (no need for a and j)
+// X - Math library functions: s, c, l, e (no need for a and j)
 
 grammar Grammar;
 
@@ -47,18 +47,22 @@ expr returns [double i, boolean sP]:
           $i = Math.exp($e.i); //exp = e^x in math library
         $sP = false;
     }
-    | op=('++'|'--') e=expr {
+    | op=('++'|'--') ID {
+        String key = $ID.getText();
         if($op.getText().equals("++"))
-            $i=++$e.i;
+            $i = glob.get(key)+1;
         else
-            $i=--$e.i;
+            $i = glob.get(key)-1;
+        glob.put(key, $i);
         $sP = false;
     }
-    | e=expr op=('++'|'--') {
+    | ID op=('++'|'--') {
+        String key = $ID.getText();
+        $i = glob.get(key);
         if($op.getText().equals("++"))
-            $i=$e.i++;
+            glob.put(key, $i+1);
         else
-            $i=$e.i--;
+            glob.put(key, $i-1);
         $sP = false;
     }
     | '-' e=expr { 
