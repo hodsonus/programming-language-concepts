@@ -33,25 +33,35 @@ grammar Grammar;
 
 exprList: (topExpr ((';'|NL)+|EOF))+;
 
-varDef: VAR ID '=' expr;
+varDef: VAR ID '=' topExpr;
 
-topExpr: expr { System.out.println(Double.toString($expr.i)); } ;
-expr returns [double i]:
-    op=('++'|'--') e=expr {
+topExpr:
+    e=altExpr { System.out.println(Double.toString($e.i)); }
+    | e=altExpr
+    | e=altExpr { System.out.println(Double.toString($e.i)); }
+    ;
+
+altExpr returns [double i]:
+    pr=preExpr {$i=pr.$i}
+    | as=assignExpr {$i=as.$i}
+    | po=postExpr {$i=po.$i};
+
+preExpr returns [double i]:
+    op=('++'|'--') e=altExpr {
         if($op.getText().equals("++"))
             $i=++$e.i;
         else
             $i=--$e.i;
     }
-    | e=expr op=('++'|'--') {
+    | e=altExpr op=('++'|'--') {
         if($op.getText().equals("++"))
             $i=$e.i++;
         else
             $i=$e.i--;
     }
-    | '-' e=expr { $i= -$e.i; }
-    | el=expr op='^' er=expr { $i=Math.pow($el.i,$er.i); }
-    | el=expr op=('*'|'/'|'%') er=expr {
+    | '-' e=altExpr { $i= -$e.i; }
+    | el=altExpr op='^' er=altExpr { $i=Math.pow($el.i,$er.i); }
+    | el=altExpr op=('*'|'/'|'%') er=altExpr {
         if ($op.getText().equals("*"))
             $i=$el.i*$er.i;
         else if ($op.getText().equals("%"))
@@ -59,18 +69,25 @@ expr returns [double i]:
         else
             $i=$el.i/$er.i;
     }
-    | el=expr op=('+'|'-') er=expr {
+    | el=altExpr op=('+'|'-') er=altExpr {
         if ($op.getText().equals("+"))
             $i=$el.i+$er.i;
         else
             $i=$el.i-$er.i;
     }
-    | ID '=' e=expr {
+    ;
+
+assignExpr returns [double i]:
+    ID '=' e=altExpr {
         String key = $ID.getText();
         double val = $e.i;
         glob.put(key,val);
+        $i = val;
     }
-    | el=expr op=( '<=' |'<'|'>='|'>'|'=='|'!=') er=expr {
+    ;
+
+postExpr returns [double i]:
+    el=altExpr op=( '<=' |'<'|'>='|'>'|'=='|'!=') er=altExpr {
         if ($op.getText().equals("<="))
             $i = ($el.i <= $er.i) ? 1:0;
         else if ($op.getText().equals("<"))
@@ -84,11 +101,11 @@ expr returns [double i]:
         else // $op.getText().equals("!=")
             $i = ($el.i != $er.i) ? 1:0;
     }
-    | '!' e=expr { $i= ($e.i!=0) ? 0:1; }
-    | el=expr op='&&' er=expr { $i= (($el.i != 0) && ($er.i != 0)) ? 1:0; }
-    | el=expr op='||' er=expr { $i= (($el.i != 0) || ($er.i != 0)) ? 1:0; }
+    | '!' e=altExpr { $i= ($e.i!=0) ? 0:1; }
+    | el=altExpr op='&&' er=altExpr { $i= (($el.i != 0) && ($er.i != 0)) ? 1:0; }
+    | el=altExpr op='||' er=altExpr { $i= (($el.i != 0) || ($er.i != 0)) ? 1:0; }
     | INT { $i=Integer.parseInt($INT.text); }
-    | '(' e=expr ')'
+    | '(' e=altExpr ')'
     | ID {
         String key = $ID.getText();
         Double val = glob.get(key);
