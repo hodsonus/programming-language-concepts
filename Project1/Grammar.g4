@@ -36,7 +36,18 @@ exprList: (topExpr ((';'|NL)+|EOF))+;
 topExpr: e=expr { if (!$e.sP) System.out.println(Double.toString($e.i)); } ;
 
 expr returns [double i, boolean sP]:
-    op=('++'|'--') e=expr {
+    fxn=('s'|'c'|'l'|'e') '(' e=expr ')' {
+        if($fxn.getText().equals("s"))
+            $i = Math.sin($e.i);
+        else if($fxn.getText().equals("c"))
+            $i = Math.cos($e.i);
+        else if($fxn.getText().equals("l"))
+          $i = Math.log($e.i); //log=ln in math library
+        else // $fxn.getText().equals("e")
+          $i = Math.exp($e.i); //exp = e^x in math library
+        $sP = false;
+    }
+    | op=('++'|'--') e=expr {
         if($op.getText().equals("++"))
             $i=++$e.i;
         else
