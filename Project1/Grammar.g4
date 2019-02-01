@@ -33,24 +33,34 @@ grammar Grammar;
 
 exprList: (topExpr ((';'|NL)+|EOF))+;
 
-varDef: VAR ID '=' expr;
+topExpr: e=expr { 
+    if (!$e.sP)
+        System.out.println(Double.toString($e.i));
+} ;
 
-topExpr: expr { System.out.println(Double.toString($expr.i)); } ;
-expr returns [double i]:
+expr returns [double i, boolean sP]:
     op=('++'|'--') e=expr {
         if($op.getText().equals("++"))
             $i=++$e.i;
         else
             $i=--$e.i;
+        $sP = false;
     }
     | e=expr op=('++'|'--') {
         if($op.getText().equals("++"))
             $i=$e.i++;
         else
             $i=$e.i--;
+        $sP = false;
     }
-    | '-' e=expr { $i= -$e.i; }
-    | el=expr op='^' er=expr { $i=Math.pow($el.i,$er.i); }
+    | '-' e=expr { 
+        $i= -$e.i; 
+        $sP = false;
+    }
+    | el=expr op='^' er=expr {
+        $i=Math.pow($el.i,$er.i);
+        $sP = false;
+    }
     | el=expr op=('*'|'/'|'%') er=expr {
         if ($op.getText().equals("*"))
             $i=$el.i*$er.i;
@@ -58,17 +68,21 @@ expr returns [double i]:
             $i=$el.i%$er.i;
         else
             $i=$el.i/$er.i;
+        $sP = false;
     }
     | el=expr op=('+'|'-') er=expr {
         if ($op.getText().equals("+"))
             $i=$el.i+$er.i;
         else
             $i=$el.i-$er.i;
+        $sP = false;
     }
     | ID '=' e=expr {
         String key = $ID.getText();
         double val = $e.i;
         glob.put(key,val);
+        $i = val;
+        $sP = true;
     }
     | el=expr op=( '<=' |'<'|'>='|'>'|'=='|'!=') er=expr {
         if ($op.getText().equals("<="))
@@ -83,22 +97,38 @@ expr returns [double i]:
             $i = ($el.i == $er.i) ? 1:0;
         else // $op.getText().equals("!=")
             $i = ($el.i != $er.i) ? 1:0;
+        $sP = false;
     }
-    | '!' e=expr { $i= ($e.i!=0) ? 0:1; }
-    | el=expr op='&&' er=expr { $i= (($el.i != 0) && ($er.i != 0)) ? 1:0; }
-    | el=expr op='||' er=expr { $i= (($el.i != 0) || ($er.i != 0)) ? 1:0; }
-    | INT { $i=Integer.parseInt($INT.text); }
+    | '!' e=expr {
+        $i= ($e.i != 0) ? 0:1;
+        $sP = false;
+    }
+    | el=expr op='&&' er=expr {
+        $i= (($el.i != 0) && ($er.i != 0)) ? 1:0;
+        $sP = false;
+    }
+    | el=expr op='||' er=expr {
+        $i= (($el.i != 0) || ($er.i != 0)) ? 1:0;
+        $sP = false;
+    }
+    | INT {
+        $i=Integer.parseInt($INT.text);
+        $sP = false;
+    }
     | '(' e=expr ')'
     | ID {
         String key = $ID.getText();
         Double val = glob.get(key);
         $i = (val == null) ? 0 : val;
+        $sP = false;
     }
     ;
 
 BLOCK_COMMENT: '/*'.*?'*/' -> skip;
 INLINE_COMMENT: '#'.*?~[\r\n]* -> skip;
 
+// TOOD, what is this stuff??
+varDef: VAR ID '=' expr;
 VAR: 'var'; // keyword
 
 ID: [_A-Za-z]+;
