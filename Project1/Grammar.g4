@@ -15,8 +15,9 @@
 // X - Basic expressions with variables
 // X - Boolean Expressions
 // X - Precedence
-//   - Special Expression: read and sqrt
-// X - Statements: expressions (print value on the screen when executed), print expressions
+// X - Special Expression: read and sqrt
+// X - Statements: expressions (print value on the screen when executed)
+//   - print expressions, a special type of expression called like 'print <expr>, <expr>, ...'
 // X - Math library functions: s, c, l, e (no need for a and j)
 
 grammar Grammar;
