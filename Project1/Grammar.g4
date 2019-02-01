@@ -115,7 +115,10 @@ expr returns [double i, boolean sP]:
         $i=Integer.parseInt($INT.text);
         $sP = false;
     }
-    | '(' e=expr ')'
+    | '(' e=expr ')' {
+        $i = $e.i;
+        $sP = false;
+    }
     | ID {
         String key = $ID.getText();
         Double val = glob.get(key);
