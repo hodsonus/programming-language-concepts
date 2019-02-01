@@ -24,11 +24,13 @@ grammar Grammar;
 @header {
     // parser members
     import java.util.HashMap;
+    import java.util.Scanner;
 }
 
 @members {
     // lexer members
     HashMap<String, Double> glob = new HashMap<String, Double>();
+    Scanner sc = new Scanner(System.in);
 }
 
 exprList: (topExpr ((';'|NL)+|EOF))+;
@@ -36,7 +38,15 @@ exprList: (topExpr ((';'|NL)+|EOF))+;
 topExpr: e=expr { if (!$e.sP) System.out.println(Double.toString($e.i)); } ;
 
 expr returns [double i, boolean sP]:
-    fxn=('s'|'c'|'l'|'e') '(' e=expr ')' {
+    'read()' {
+        $i = sc.nextDouble();
+        $sP = false;
+    }
+    | 'sqrt' '(' e=expr ')' {
+        $i = Math.sqrt($e.i);
+        $sP = false;
+    }
+    | fxn=('s'|'c'|'l'|'e') '(' e=expr ')' {
         if($fxn.getText().equals("s"))
             $i = Math.sin($e.i);
         else if($fxn.getText().equals("c"))
