@@ -12,11 +12,11 @@
 // 	Arbitrary precision - extra 10%
 
 // X - Block/InLine Comments
-//   - Basic expressions with variables
+// X - Basic expressions with variables
 // X - Boolean Expressions
-//   - Precedence
+// X - Precedence
 //   - Special Expression: read and sqrt
-//   - Statements: expressions (print value on the screen when executed), print expressions
+// X - Statements: expressions (print value on the screen when executed), print expressions
 //   - Math library functions: s, c, l, e (no need for a and j)
 
 grammar Grammar;
@@ -33,10 +33,7 @@ grammar Grammar;
 
 exprList: (topExpr ((';'|NL)+|EOF))+;
 
-topExpr: e=expr { 
-    if (!$e.sP)
-        System.out.println(Double.toString($e.i));
-} ;
+topExpr: e=expr { if (!$e.sP) System.out.println(Double.toString($e.i)); } ;
 
 expr returns [double i, boolean sP]:
     op=('++'|'--') e=expr {
@@ -128,11 +125,12 @@ expr returns [double i, boolean sP]:
     ;
 
 BLOCK_COMMENT: '/*'.*?'*/' -> skip;
-INLINE_COMMENT: '#'.*?~[\r\n]* -> skip;
+INLINE_COMMENT: '#'.*?~[\r\n]* -> skip; //TODO, come back to this if we have time
 
 // TOOD, what is this stuff??
 varDef: VAR ID '=' expr;
 VAR: 'var'; // keyword
+// END TODO
 
 ID: [_A-Za-z]+;
 INT: [0-9]+;
