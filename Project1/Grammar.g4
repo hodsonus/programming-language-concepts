@@ -2,7 +2,6 @@
 // javac Grammar*.java
 // grun Grammar expr [-tree] [-gui] input.txt
 
-
 // BONUS -
 // 	Arrays - extra 10%
 // 		how do you implement arrays
@@ -83,8 +82,8 @@ expr returns [double i, boolean sP]:
             glob.put(key, $i-1);
         $sP = false;
     }
-    | '-' e=expr { 
-        $i= -$e.i; 
+    | '-' e=expr {
+        $i= -$e.i;
         $sP = false;
     }
     | el=expr op='^' er=expr {
@@ -159,11 +158,6 @@ expr returns [double i, boolean sP]:
 
 BLOCK_COMMENT: '/*'.*?'*/' -> skip;
 INLINE_COMMENT: '#'.*?~[\r\n]* -> skip; //TODO, come back to this if we have time
-
-// TOOD, what is this stuff??
-varDef: VAR ID '=' expr;
-VAR: 'var'; // keyword
-// END TODO
 
 ID: [_A-Za-z]+;
 INT: [0-9]+;
