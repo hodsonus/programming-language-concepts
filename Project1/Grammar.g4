@@ -26,6 +26,7 @@ grammar Grammar;
     // parser members
     import java.util.HashMap;
     import java.util.Scanner;
+    import java.util.InputMismatchException;
 }
 
 @members {
@@ -40,7 +41,13 @@ topExpr: e=expr { if (!$e.sP) System.out.println(Double.toString($e.i)); } ;
 
 expr returns [double i, boolean sP]:
     'read()' {
-        $i = sc.nextDouble();
+        try {
+            $i = sc.nextDouble();
+        }
+        catch (InputMismatchException e) {
+            System.out.println("Invalid paramater provided to read(), halting program...");
+            System.exit(0); 
+        }
         $sP = false;
     }
     | 'sqrt' '(' e=expr ')' {

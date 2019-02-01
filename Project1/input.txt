@@ -1,4 +1,6 @@
 2+2;;
 sqrt(4)
 x = read()
-x+2
+
+x
+read()
