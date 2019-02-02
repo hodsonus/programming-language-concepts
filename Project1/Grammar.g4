@@ -61,15 +61,17 @@ expr returns [double i, boolean sP]:
     }
     | op=('++'|'--') ID {
         String key = $ID.getText();
+        Double val = GLOB.get(key);
         if($op.getText().equals("++"))
-            $i = GLOB.get(key)+1;
+            $i = ((val == null) ? 0 : val)+1;
         else
-            $i = GLOB.get(key)-1;
+            $i = ((val == null) ? 0 : val)-1;
         GLOB.put(key, $i);
     }
     | ID op=('++'|'--') {
         String key = $ID.getText();
-        $i = GLOB.get(key);
+        Double val = GLOB.get(key);
+        $i = ((val == null) ? 0 : val);
         if($op.getText().equals("++"))
             GLOB.put(key, $i+1);
         else

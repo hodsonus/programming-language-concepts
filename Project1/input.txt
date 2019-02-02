@@ -1,6 +1,6 @@
 2+2;;
 sqrt(4)
-x = read()
+y
+y++
 
-x
-read()
+y
