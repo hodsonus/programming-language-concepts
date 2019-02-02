@@ -38,7 +38,7 @@ topExpr:
         _newline_enabled = true;
     };
 
-expr returns [double i, boolean sP]:
+expr returns [double i]:
     'read()' {
         try { $i = SCNR.nextDouble(); }
         catch (InputMismatchException e) {
