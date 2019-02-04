@@ -1,0 +1,92 @@
+###### 1. comments ######
+/* block comments */
+/*block comments*/
+/**/
+/* */
+/*;*/
+/*block;comments*/
+/*
+*/
+/*;
+*/
+/*
+;*/
+/*
+block comments
+*/
+/*
+block
+comments
+*/
+
+# inline comments
+#inline comments
+#; inline comments
+#;inline comments
+# inline comments;
+#inline comments;
+#;;
+#
+
+###### 2. literal arithmetic exps ######
+-1
+1+2
+1-2
+1*2
+1/2
+1^2
+1%2
+
+###### 2. variable arithmetic exps ######
+x = 3
+x++
+x
+x--
+x
+++x
+x
+--x
+x
+
+y = 4
+
+-x
+x+y
+x-y
+x*y
+x/y
+x^y
+x%y
+(x)
+(y)
+
+###### 3. relational exps ######
+x>y
+x<y
+x>=y
+x<=y
+x==y
+x!=y
+
+###### 3. boolean exps ######
+x
+!x
+!(!x)
+x && y
+x || y
+
+###### 4. precedence ######
+# oof #
+
+###### 5. special exps ######
+x = read()
+sqrt(x)
+
+###### 6. statements ######
+
+
+###### 7. math library ######
+s(1)
+c(1)
+l(3)
+e(1)

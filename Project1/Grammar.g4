@@ -32,21 +32,24 @@ topExpr:
             System.out.print(out);
         }
 
-        // restore GLOBal state
+        // restore global state
         _output_length = 1;
         _print_enabled = true;
         _newline_enabled = true;
     };
 
 expr returns [double i]:
-    'read()' {
+    'print' {
+        /* 'print ' + <',' or ';' delimited exprList> */
+    }
+    | 'read()' {
         try { $i = SCNR.nextDouble(); }
         catch (InputMismatchException e) {
             System.out.println("Invalid paramater provided to read(), halting program...");
             System.exit(0);
         }
     }
-    | 'sqrt' '(' e=expr ')' {
+    | 'sqrt(' e=expr ')' {
         $i = Math.sqrt($e.i);
     }
     | fxn=('s'|'c'|'l'|'e') '(' e=expr ')' {
