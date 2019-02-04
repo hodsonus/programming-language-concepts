@@ -13,7 +13,6 @@ grammar Grammar;
     Scanner SCNR = new Scanner(System.in);
     // global options
     boolean _print_enabled = true;
-    boolean _newline_enabled = true;
 }
 
 exprList: (topExpr ((';'|NL)+|EOF))+;
@@ -26,18 +25,18 @@ topExpr:
         // print if enabled
         if (_print_enabled) {
             String out = Double.toString($e.i);
-            if (_newline_enabled) out += "\n";
-            System.out.print(out);
+            System.out.println(out);
         }
 
         // restore global state
         _print_enabled = true;
-        _newline_enabled = true;
     };
 
 expr returns [double i]:
-    'print' {
-        /* 'print ' + <',' or ';' delimited exprList> */
+    'print' epl=exprPrintList {
+        System.out.println($epl.i);
+        $i = 0; //don't care about return value since we print here.
+        _print_enabled = false;
     }
     | 'read()' {
         try { $i = SCNR.nextDouble(); }
@@ -137,6 +136,16 @@ expr returns [double i]:
         String key = $ID.getText();
         Double val = GLOB.get(key);
         $i = (val == null) ? 0 : val;
+    }
+    ;
+    
+    exprPrintList returns [String i]:
+    e=expr {
+        $i=Double.toString($e.i);
+    }
+    |
+    e=expr ',' epl=exprPrintList {
+        $i = Double.toString($e.i) + $epl.i;
     }
     ;
 
