@@ -147,11 +147,16 @@ expr returns [double i]:
     e=expr ',' epl=exprPrintList {
         $i = Double.toString($e.i) + $epl.i;
     }
+    |
+    str=STRING ',' epl=exprPrintList {
+        $i = $str.text.substring(1,$str.text.length()-1) + $epl.i;
+    }
     ;
 
 BLOCK: '/*'.*?'*/' -> skip;
 INLINE: '#'.*?~[\r\n]* -> skip;
 
+STRING: '"'.*?'"';
 ID: [_A-Za-z]+;
 NUM: ([0-9]+|[0-9]*'.'[0-9]*);
 WS: [ \t]+ -> skip;
