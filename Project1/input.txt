@@ -1,46 +1,6 @@
-2+2;;
-sqrt(4)
-y
-y++
+2.1+2.3
 
-y
-
+/*
 -1 # not being formtted (printed) properly
 # note: can't start an input file with a comment
-
-/************************/
-/*** Final Test Cases ***/
-/************************/
-
-###### 1. comments ######
-/* block comments */
-/*block comments*/
-/**/
-/* */
-/*;*/
-/*block;comments*/
-/*
 */
-/*;
-*/
-/*
-;*/
-/*
-block comments
-*/
-/*
-block
-comments
-*/
-
-# inline comments
-#inline comments
-#; inline comments
-#;inline comments
-# inline comments;
-#inline comments;
-#;;
-#
-
-###### 2. literal arithmetic exps ######
--1
