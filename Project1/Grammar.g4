@@ -15,7 +15,7 @@ grammar Grammar;
     boolean _print_enabled = true;
 }
 
-exprList: (topExpr ((';'|NL)+|EOF))+;
+exprList: NL*(topExpr ((';'|NL)+|EOF))+;
 
 topExpr:
     e=expr {
@@ -136,25 +136,21 @@ expr returns [double i]:
         String key = $ID.getText();
         Double val = GLOB.get(key);
         $i = (val == null) ? 0 : val;
-    }
-    ;
+    };
     
-    exprPrintList returns [String i]:
+exprPrintList returns [String i]:
     e=expr {
         $i=Double.toString($e.i);
     }
-    |
-    e=expr ',' epl=exprPrintList {
+    | e=expr ',' epl=exprPrintList {
         $i = Double.toString($e.i) + $epl.i;
     }
-    |
-    str=STRING ',' epl=exprPrintList {
+    | str=STRING ',' epl=exprPrintList {
         $i = $str.text.substring(1,$str.text.length()-1) + $epl.i;
-    }
-    ;
+    };
 
 BLOCK: '/*'.*?'*/' -> skip;
-INLINE: '#'.*?~[\r\n]* -> skip;
+INLINE: '#'~[\r\n]* -> skip;
 
 STRING: '"'.*?'"';
 ID: [_A-Za-z]+;
