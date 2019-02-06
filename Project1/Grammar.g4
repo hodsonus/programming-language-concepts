@@ -44,9 +44,11 @@ expr returns [double i]:
             System.out.println("Invalid paramater provided to read(), halting program...");
             System.exit(0);
         }
+        _print_enabled = true;
     }
     | 'sqrt(' e=expr ')' {
         $i = Math.sqrt($e.i);
+        _print_enabled = true;
     }
     | fxn=('s('|'c('|'l('|'e(') e=expr ')' {
         if($fxn.getText().equals("s("))
@@ -57,6 +59,7 @@ expr returns [double i]:
             $i = Math.log($e.i); // log=ln in math library
         else // $fxn.getText().equals("e(")
             $i = Math.exp($e.i); // exp = e^x in math library
+        _print_enabled = true;
     }
     | op=('++'|'--') ID {
         String key = $ID.getText();
@@ -66,6 +69,7 @@ expr returns [double i]:
         else
             $i = ((val == null) ? 0 : val)-1;
         GLOB.put(key, $i);
+        _print_enabled = true;
     }
     | ID op=('++'|'--') {
         String key = $ID.getText();
@@ -75,12 +79,15 @@ expr returns [double i]:
             GLOB.put(key, $i+1);
         else
             GLOB.put(key, $i-1);
+        _print_enabled = true;
     }
     | '-' e=expr {
         $i= -$e.i;
+        _print_enabled = true;
     }
     | el=expr op='^' er=expr {
         $i=Math.pow($el.i,$er.i);
+        _print_enabled = true;
     }
     | el=expr op=('*'|'/'|'%') er=expr {
         if ($op.getText().equals("*"))
@@ -94,12 +101,14 @@ expr returns [double i]:
             }
             $i= $el.i/$er.i;
         }
+        _print_enabled = true;
     }
     | el=expr op=('+'|'-') er=expr {
         if ($op.getText().equals("+"))
             $i=$el.i+$er.i;
         else
             $i=$el.i-$er.i;
+        _print_enabled = true;
     }
     | ID '=' e=expr {
         String key = $ID.getText();
@@ -121,26 +130,33 @@ expr returns [double i]:
             $i = ($el.i == $er.i) ? 1:0;
         else // $op.getText().equals("!=")
             $i = ($el.i != $er.i) ? 1:0;
+        _print_enabled = true;
     }
     | '!' e=expr {
         $i= ($e.i != 0) ? 0:1;
+        _print_enabled = true;
     }
     | el=expr op='&&' er=expr {
         $i= (($el.i != 0) && ($er.i != 0)) ? 1:0;
+        _print_enabled = true;
     }
     | el=expr op='||' er=expr {
         $i= (($el.i != 0) || ($er.i != 0)) ? 1:0;
+        _print_enabled = true;
     }
     | NUM {
         $i = Double.parseDouble($NUM.text);
+        _print_enabled = true;
     }
     | '(' e=expr ')' {
         $i = $e.i;
+        _print_enabled = true;
     }
     | ID {
         String key = $ID.getText();
         Double val = GLOB.get(key);
         $i = (val == null) ? 0 : val;
+        _print_enabled = true;
     };
     
 exprPrintList returns [String i]:
