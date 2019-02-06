@@ -87,8 +87,13 @@ expr returns [double i]:
             $i=$el.i*$er.i;
         else if ($op.getText().equals("%"))
             $i=$el.i%$er.i;
-        else
-            $i=$el.i/$er.i;
+        else {
+            if ($er.i == 0) {
+                System.out.println("Invalid paramater provided to division, halting program...");
+                System.exit(0);
+            }
+            $i= $el.i/$er.i;
+        }
     }
     | el=expr op=('+'|'-') er=expr {
         if ($op.getText().equals("+"))
