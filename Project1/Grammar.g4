@@ -34,7 +34,7 @@ topExpr:
 
 expr returns [double i]:
     'print' epl=exprPrintList {
-        System.out.println($epl.i);
+        System.out.print($epl.i);
         $i = 0; //don't care about return value since we print here.
         _print_enabled = false;
     }
@@ -163,11 +163,18 @@ exprPrintList returns [String i]:
     e=expr {
         $i=Double.toString($e.i);
     }
+    | str=STRING {
+        String temp = $str.text.substring(1,$str.text.length()-1);
+        temp = temp.replace("\\n","\n").replace("\\t","\t").replace("\\r","\r");
+        $i= temp;
+    }
     | e=expr ',' epl=exprPrintList {
         $i = Double.toString($e.i) + $epl.i;
     }
     | str=STRING ',' epl=exprPrintList {
-        $i = $str.text.substring(1,$str.text.length()-1) + $epl.i;
+        String temp = $str.text.substring(1,$str.text.length()-1);
+        temp = temp.replace("\\n","\n").replace("\\t","\t").replace("\\r","\r");
+        $i = temp + $epl.i;
     };
 
 BLOCK: '/*'.*?'*/' -> skip;
