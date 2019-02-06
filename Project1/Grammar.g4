@@ -48,14 +48,14 @@ expr returns [double i]:
     | 'sqrt(' e=expr ')' {
         $i = Math.sqrt($e.i);
     }
-    | fxn=('s'|'c'|'l'|'e') '(' e=expr ')' {
-        if($fxn.getText().equals("s"))
+    | fxn=('s('|'c('|'l('|'e(') e=expr ')' {
+        if($fxn.getText().equals("s("))
             $i = Math.sin($e.i);
-        else if($fxn.getText().equals("c"))
+        else if($fxn.getText().equals("c("))
             $i = Math.cos($e.i);
-        else if($fxn.getText().equals("l"))
+        else if($fxn.getText().equals("l("))
             $i = Math.log($e.i); // log=ln in math library
-        else // $fxn.getText().equals("e")
+        else // $fxn.getText().equals("e(")
             $i = Math.exp($e.i); // exp = e^x in math library
     }
     | op=('++'|'--') ID {
