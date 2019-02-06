@@ -158,7 +158,7 @@ BLOCK: '/*'.*?'*/' -> skip;
 INLINE: '#'~[\r\n]* -> skip;
 
 STRING: '"'.*?'"';
-ID: [_A-Za-z]+;
+ID: [a-z]+[_]*[a-z]*;
 NUM: ([0-9]+|[0-9]*'.'[0-9]*);
 WS: [ \t]+ -> skip;
 NL: [\r]?[\n];
