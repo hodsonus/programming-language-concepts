@@ -85,6 +85,10 @@ expr returns [double i]:
         $i= -$e.i;
         _print_enabled = true;
     }
+    | el=expr op1='^' em=expr op2='^' er=expr {
+        $i=Math.pow($el.i, Math.pow($em.i,$er.i));
+        _print_enabled = true;
+    }
     | el=expr op='^' er=expr {
         $i=Math.pow($el.i,$er.i);
         _print_enabled = true;
