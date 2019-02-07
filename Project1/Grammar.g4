@@ -160,21 +160,21 @@ expr returns [double i]:
     };
     
 exprPrintList returns [String i]:
-    e=expr {
-        $i=Double.toString($e.i);
-    }
-    | str=STRING {
-        String temp = $str.text.substring(1,$str.text.length()-1);
-        temp = temp.replace("\\n","\n").replace("\\t","\t").replace("\\r","\r");
-        $i= temp;
-    }
-    | e=expr ',' epl=exprPrintList {
+    e=expr ',' epl=exprPrintList {
         $i = Double.toString($e.i) + $epl.i;
     }
     | str=STRING ',' epl=exprPrintList {
         String temp = $str.text.substring(1,$str.text.length()-1);
         temp = temp.replace("\\n","\n").replace("\\t","\t").replace("\\r","\r");
         $i = temp + $epl.i;
+    }
+    | e=expr {
+        $i=Double.toString($e.i);
+    }
+    | str=STRING {
+        String temp = $str.text.substring(1,$str.text.length()-1);
+        temp = temp.replace("\\n","\n").replace("\\t","\t").replace("\\r","\r");
+        $i= temp;
     };
 
 BLOCK: '/*'.*?'*/' -> skip;
