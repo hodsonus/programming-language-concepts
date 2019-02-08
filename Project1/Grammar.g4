@@ -21,13 +21,11 @@ topExpr:
     e=expr {
         // store last variable in symbol table
         GLOB.put("last", $e.i);
-
         // print if enabled
         if (_print_enabled) {
             String out = Double.toString($e.i);
             System.out.println(out);
         }
-
         // restore global state
         _print_enabled = true;
     };
@@ -172,14 +170,14 @@ expr returns [double i]:
         $i = (val == null) ? 0 : val;
         _print_enabled = true;
     };
-    
+
 exprPrintList returns [String i]:
     e=expr ',' epl=exprPrintList {
         $i = Double.toString($e.i) + $epl.i;
     }
     | str=STRING ',' epl=exprPrintList {
         String temp = $str.text.substring(1,$str.text.length()-1);
-        //temp = temp.replace("\\n","\n").replace("\\t","\t").replace("\\r","\r");
+        // temp = temp.replace("\\n","\n").replace("\\t","\t").replace("\\r","\r");
         $i = temp + $epl.i;
     }
     | e=expr {

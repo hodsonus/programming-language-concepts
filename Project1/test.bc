@@ -49,6 +49,10 @@ print "test: <x++>", " expected: <3>", " observed: ", x++
 print "test: <x-->", " expected: <4>", " observed: ", x--
 print "test: <++x>", " expected: <4>", " observed: ", ++x
 print "test: <--x>", " expected: <3>", " observed: ", --x
+print "test: <x+=1>", " expected: <4>", " observed: ", x+=1
+print "test: <x-=1>", " expected: <3>", " observed: ", x-=1
+print "test: <x*=2>", " expected: <6>", " observed: ", x*=2
+print "test: <x/=2>", " expected: <3>", " observed: ", x/=2
 
 # variable arithmetic
 print "test: <-x>", " expected: <-3>", " observed: ",-x
@@ -155,6 +159,7 @@ print "test: <1||1&&0>", " expected: <1>", " observed: ", 1||1&&0
 print "test: <0&&1||1>", " expected: <1>", " observed: ", 0&&1||1
 
 ###### 5. special exps ######
+print "please enter a number to test read(): "
 print "test: x=read()", " expected: <your user input>", " observed: ",x=read()
 print "test: x=2", " expected: <2>", " observed: ", x=2
 print "test: sqrt(x)", " expected: <1.414...>", " observed: ", sqrt(x)
@@ -170,3 +175,7 @@ print "test: <l(3)>", " expected: <1.09...>", " observed: ", l(3)
 print "test: <e(1)>", " expected: <2.71...>", " observed: ", e(1)
 print "test: <e(l)>", " expected: <1.00...>", " observed: ", e(l)
 print "test: <l(e(1))>", " expected: <.99...>", " observed: ", l(e(1))
+
+print "test: <l(-1)>", " expected: <-inf/nan>", " observed: ", l(-1)
+print "test: <sqrt(-100)>", " expected: <error/nan>", " observed: ", sqrt(-100)
+print "test: <s(1000)>", " expected: <.82...>", " observed: ", s(1000)
