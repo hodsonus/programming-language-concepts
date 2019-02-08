@@ -28,10 +28,7 @@ comments
 #;;
 #
 
-
-
 ###### 2. literal arithmetic exps ######
-
 # negative/double parsing
 print "test: <-1.1>", " expected: <-1.1>", " observed: ", -1.1
 
@@ -44,14 +41,10 @@ print "test: <1/2>", " expected: <0.5>", " observed: ",1/2
 print "test: <2^2>", " expected: <4>", " observed: ", 2^2
 print "test: <10%20>", " expected: <10>", " observed: ", 10%20
 
-
-
 ###### 2. variable arithmetic exps ######
-
 # assignment
 print "test: <x=3>", " expected: <3>", " observed: ", x=3
 print "test: <y=4>", " expected: <4>", " observed: ", y=4
-
 print "test: <x++>", " expected: <3>", " observed: ", x++
 print "test: <x-->", " expected: <4>", " observed: ", x--
 print "test: <++x>", " expected: <4>", " observed: ", ++x
@@ -67,8 +60,6 @@ print "test: <x^y>", " expected: <81>", " observed: ",x^y
 print "test: <x%y>", " expected: <3>", " observed: ",x%y
 print "test: <(x)>", " expected: <3>", " observed: ",(x)
 print "test: <(y)>", " expected: <4>", " observed: ",(y)
-
-
 
 ###### 3. relational exps ######
 # greater/less than
@@ -114,10 +105,7 @@ print "test: <0||3>", " expected: <1>", " observed: ", 0||3
 print "test: <2||0>", " expected: <1>", " observed: ", 2||0
 print "test: <0||0>", " expected: <0>", " observed: ", 0||0
 
-
-
 ###### 4. precedence ######
-
 print "test: <x=3&&1>", " expected: <1>", " observed: ", x=3&&1
 # division/multiplication before addition
 print "test: <5/2+2*6>", " expected: <14.5>", " observed: ", 5/2+2*6
@@ -166,19 +154,13 @@ print "test: <1||1&&0>", " expected: <1>", " observed: ", 1||1&&0
 # or priority
 print "test: <0&&1||1>", " expected: <1>", " observed: ", 0&&1||1
 
-
-
 ###### 5. special exps ######
 print "test: x=read()", " expected: <your user input>", " observed: ",x=read()
 print "test: x=2", " expected: <2>", " observed: ", x=2
 print "test: sqrt(x)", " expected: <1.414...>", " observed: ", sqrt(x)
 
-
-
 ###### 6. statements ######
 # this entire test file
-
-
 
 ###### 7. math library ######
 # sine, cosine, e^x, ln(x)
@@ -187,4 +169,4 @@ print "test: <c(1)>", " expected: <.54...>", " observed: ", c(1)
 print "test: <l(3)>", " expected: <1.09...>", " observed: ", l(3)
 print "test: <e(1)>", " expected: <2.71...>", " observed: ", e(1)
 print "test: <e(l)>", " expected: <1.00...>", " observed: ", e(l)
-print "test: <l(e)>", " expected: <.99...>", " observed: ", l(e(1))
+print "test: <l(e(1))>", " expected: <.99...>", " observed: ", l(e(1))
