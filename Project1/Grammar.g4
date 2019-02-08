@@ -34,7 +34,7 @@ topExpr:
 
 expr returns [double i]:
     'print' epl=exprPrintList {
-        System.out.print($epl.i);
+        System.out.println($epl.i);
         $i = 0; //don't care about return value since we print here.
         _print_enabled = false;
     }
@@ -114,9 +114,19 @@ expr returns [double i]:
             $i=$el.i-$er.i;
         _print_enabled = true;
     }
-    | ID '=' e=expr {
+    | ID op=('='|'+='|'-='|'*='|'/=') e=expr {
         String key = $ID.getText();
-        double val = $e.i;
+        double val = 0;
+        if ($op.getText().equals("="))
+            val = $e.i;
+        else if ($op.getText().equals("+="))
+            val = GLOB.get(key) + $e.i;
+        else if ($op.getText().equals("-="))
+            val = GLOB.get(key) - $e.i;
+        else if ($op.getText().equals("*="))
+            val = GLOB.get(key) * $e.i;
+        else if ($op.getText().equals("/="))
+            val = GLOB.get(key) / $e.i;
         GLOB.put(key,val);
         $i = val;
         _print_enabled = false;
@@ -169,7 +179,7 @@ exprPrintList returns [String i]:
     }
     | str=STRING ',' epl=exprPrintList {
         String temp = $str.text.substring(1,$str.text.length()-1);
-        temp = temp.replace("\\n","\n").replace("\\t","\t").replace("\\r","\r");
+        //temp = temp.replace("\\n","\n").replace("\\t","\t").replace("\\r","\r");
         $i = temp + $epl.i;
     }
     | e=expr {
@@ -177,7 +187,7 @@ exprPrintList returns [String i]:
     }
     | str=STRING {
         String temp = $str.text.substring(1,$str.text.length()-1);
-        temp = temp.replace("\\n","\n").replace("\\t","\t").replace("\\r","\r");
+        //temp = temp.replace("\\n","\n").replace("\\t","\t").replace("\\r","\r");
         $i= temp;
     };
 
