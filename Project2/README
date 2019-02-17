@@ -1,0 +1,20 @@
+Files:
+- Grammar.g4
+- test.bc
+- README
+
+Run Code: (using grun resting rig)
+antlr4 ./Grammar.g4
+javac Grammar*.java
+grun Grammar exprList ./test.bc
+
+Functionality:
+- All mandatory features are functional.
+- Extra credit was not attempted.
+
+Exceptional Behavior:
+- Print function was implemented using Java println() rather than print() by design.
+- Modulus was implemented simply using the integer `%` operator without scaling for floats/doubles.
+- Depending on the system, un/comment line 180 to properly parse escape characters in print strings.
+- Invalid characters (non-double) will terminate the program on a read() operation.
+- Taking a square root or log of a negative number will result in NaN.
