@@ -1,16 +1,14 @@
 Files:
 - Grammar.g4
+- Grammar.java
 - test.bc
 - README
 
 Run Code: (using grun resting rig)
-antlr4 ./Grammar.g4
-javac Grammar*.java
-grun Grammar exprList ./test.bc
+antlr4 ./Grammar.g4 && javac Grammar*.java && grun Grammar exprList ./test.bc
 
 Functionality:
-- All mandatory features are functional.
-- Extra credit was not attempted.
+- 
 
 Exceptional Behavior:
 - Print function was implemented using Java println() rather than print() by design.

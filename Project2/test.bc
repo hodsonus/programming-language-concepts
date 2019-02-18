@@ -32,155 +32,155 @@ comments
 
 ###### 2. literal arithmetic exps ######
 # negative/double parsing
-print "test: <-1.1>", " expected: <-1.1>", " observed: ", -1.1
+print "test: -1.1", " exp: -1.1", " obs: ", -1.1
 
 # numerical arithmetic
-print "test: <1+2>", " expected: <3>", " observed: ", 1+2
-print "test: <1- -2>", " expected: <3>", " observed: ", 1- -2
-print "test: <1-2>", " expected: <-1>", " observed: ", 1-2
-print "test: <1*2>", " expected: <2>", " observed: ", 1*2
-print "test: <1/2>", " expected: <0.5>", " observed: ",1/2
-print "test: <2^2>", " expected: <4>", " observed: ", 2^2
-print "test: <10%20>", " expected: <10>", " observed: ", 10%20
+print "test: 1+2", " exp: 3", " obs: ", 1+2
+print "test: 1- -2", " exp: 3", " obs: ", 1- -2
+print "test: 1-2", " exp: -1", " obs: ", 1-2
+print "test: 1*2", " exp: 2", " obs: ", 1*2
+print "test: 1/2", " exp: 0.5", " obs: ", 1/2
+print "test: 2^2", " exp: 4", " obs: ", 2^2
+print "test: 10%20", " exp: 10", " obs: ", 10%20
 
 ###### 2. variable arithmetic exps ######
 # assignment
-print "test: <x=3>", " expected: <3>", " observed: ", x=3
-print "test: <y=4>", " expected: <4>", " observed: ", y=4
-print "test: <x++>", " expected: <3>", " observed: ", x++
-print "test: <x-->", " expected: <4>", " observed: ", x--
-print "test: <++x>", " expected: <4>", " observed: ", ++x
-print "test: <--x>", " expected: <3>", " observed: ", --x
-print "test: <x+=1>", " expected: <4>", " observed: ", x+=1
-print "test: <x-=1>", " expected: <3>", " observed: ", x-=1
-print "test: <x*=2>", " expected: <6>", " observed: ", x*=2
-print "test: <x/=2>", " expected: <3>", " observed: ", x/=2
+print "test: x=3", " exp: 3", " obs: ", x=3
+print "test: y=4", " exp: 4", " obs: ", y=4
+print "test: x++", " exp: 3", " obs: ", x++
+print "test: x--", " exp: 4", " obs: ", x--
+print "test: ++x", " exp: 4", " obs: ", ++x
+print "test: --x", " exp: 3", " obs: ", --x
+print "test: x+=1", " exp: 4", " obs: ", x+=1
+print "test: x-=1", " exp: 3", " obs: ", x-=1
+print "test: x*=2", " exp: 6", " obs: ", x*=2
+print "test: x/=2", " exp: 3", " obs: ", x/=2
 
 # variable arithmetic
-print "test: <-x>", " expected: <-3>", " observed: ",-x
-print "test: <x+y>", " expected: <7>", " observed: ",x+y
-print "test: <x-y>", " expected: <-1>", " observed: ",x-y
-print "test: <x*y>", " expected: <12>", " observed: ",x*y
-print "test: <x/y>", " expected: <0.75>", " observed: ",x/y
-print "test: <x^y>", " expected: <81>", " observed: ",x^y
-print "test: <x%y>", " expected: <3>", " observed: ",x%y
-print "test: <(x)>", " expected: <3>", " observed: ",(x)
-print "test: <(y)>", " expected: <4>", " observed: ",(y)
+print "test: -x", " exp: -3", " obs: ",-x
+print "test: x+y", " exp: 7", " obs: ",x+y
+print "test: x-y", " exp: -1", " obs: ",x-y
+print "test: x*y", " exp: 12", " obs: ",x*y
+print "test: x/y", " exp: 0.75", " obs: ",x/y
+print "test: x^y", " exp: 81", " obs: ",x^y
+print "test: x%y", " exp: 3", " obs: ",x%y
+print "test: (x)", " exp: 3", " obs: ",(x)
+print "test: (y)", " exp: 4", " obs: ",(y)
 
 ###### 3. relational exps ######
 # greater/less than
-print "test: <1>2>", " expected: <0>", " observed: ", 1>2
-print "test: <2>1>", " expected: <1>", " observed: ", 2>1
-print "test: <1<2>", " expected: <1>", " observed: ", 1<2
-print "test: <2<1>", " expected: <0>", " observed: ", 2<1
+print "test: 1>2", " exp: 0", " obs: ", 1>2
+print "test: 2>1", " exp: 1", " obs: ", 2>1
+print "test: 1<2", " exp: 1", " obs: ", 1<2
+print "test: 2<1", " exp: 0", " obs: ", 2<1
 
 # greater/less than or equal to
-print "test: <1>=2>", " expected: <0>", " observed: ", 1>=2
-print "test: <2>=1>", " expected: <1>", " observed: ", 2>=1
-print "test: <2>=2>", " expected: <1>", " observed: ", 2>=2
-print "test: <1<=2>", " expected: <1>", " observed: ", 1<=2
-print "test: <2<=1>", " expected: <0>", " observed: ", 2<=1
-print "test: <2<=2>", " expected: <1>", " observed: ", 2<=2
+print "test: 1>=2", " exp: 0", " obs: ", 1>=2
+print "test: 2>=1", " exp: 1", " obs: ", 2>=1
+print "test: 2>=2", " exp: 1", " obs: ", 2>=2
+print "test: 1<=2", " exp: 1", " obs: ", 1<=2
+print "test: 2<=1", " exp: 0", " obs: ", 2<=1
+print "test: 2<=2", " exp: 1", " obs: ", 2<=2
 
 # equality
-print "test: <2==1>", " expected: <0>", " observed: ", 2==1
-print "test: <1==2>", " expected: <0>", " observed: ", 1==2
-print "test: <1==1>", " expected: <1>", " observed: ", 1==1
+print "test: 2==1", " exp: 0", " obs: ", 2==1
+print "test: 1==2", " exp: 0", " obs: ", 1==2
+print "test: 1==1", " exp: 1", " obs: ", 1==1
 
 # inequality
-print "test: <1!=2>", " expected: <1>", " observed: ", 1!=2
-print "test: <2!=1>", " expected: <1>", " observed: ", 2!=1
-print "test: <1!=1>", " expected: <0>", " observed: ", 1!=1
+print "test: 1!=2", " exp: 1", " obs: ", 1!=2
+print "test: 2!=1", " exp: 1", " obs: ", 2!=1
+print "test: 1!=1", " exp: 0", " obs: ", 1!=1
 
 ###### 3. boolean exps ######
 # not
-print "test: <!1>", " expected: <0>", " observed: ", !1
-print "test: <!2>", " expected: <0>", " observed: ", !2
-print "test: <!0>", " expected: <1>", " observed: ", !0
-print "test: <!!2>", " expected: <1>", " observed: ", !!2
+print "test: !1", " exp: 0", " obs: ", !1
+print "test: !2", " exp: 0", " obs: ", !2
+print "test: !0", " exp: 1", " obs: ", !0
+print "test: !!2", " exp: 1", " obs: ", !!2
 
 # and
-print "test: <2&&3>", " expected: <1>", " observed: ", 2&&3
-print "test: <2&&0>", " expected: <0>", " observed: ", 2&&0
-print "test: <0&&3>", " expected: <0>", " observed: ", 0&&3
-print "test: <0&&0>", " expected: <0>", " observed: ", 0&&0
+print "test: 2&&3", " exp: 1", " obs: ", 2&&3
+print "test: 2&&0", " exp: 0", " obs: ", 2&&0
+print "test: 0&&3", " exp: 0", " obs: ", 0&&3
+print "test: 0&&0", " exp: 0", " obs: ", 0&&0
 
 # or
-print "test: <2||3>", " expected: <1>", " observed: ", 2||3
-print "test: <0||3>", " expected: <1>", " observed: ", 0||3
-print "test: <2||0>", " expected: <1>", " observed: ", 2||0
-print "test: <0||0>", " expected: <0>", " observed: ", 0||0
+print "test: 2||3", " exp: 1", " obs: ", 2||3
+print "test: 0||3", " exp: 1", " obs: ", 0||3
+print "test: 2||0", " exp: 1", " obs: ", 2||0
+print "test: 0||0", " exp: 0", " obs: ", 0||0
 
 ###### 4. precedence ######
-print "test: <x=3&&1>", " expected: <1>", " observed: ", x=3&&1
+print "test: x=3&&1", " exp: 1", " obs: ", x=3&&1
 # division/multiplication before addition
-print "test: <5/2+2*6>", " expected: <14.5>", " observed: ", 5/2+2*6
+print "test: 5/2+2*6", " exp: 14.5", " obs: ", 5/2+2*6
 # addition/subtraction after multiplication
-print "test: <5+2*2-6>", " expected: <3>", " observed: ", 5+2*2-6
+print "test: 5+2*2-6", " exp: 3", " obs: ", 5+2*2-6
 # division/multiplication before subtraction
-print "test: <5/2-2*6>", " expected: <-9.5>", " observed: ", 5/2-2*6
+print "test: 5/2-2*6", " exp: -9.5", " obs: ", 5/2-2*6
 # addition/subtraction after division
-print "test: <5+2/2-6>", " expected: <0>", " observed: ", 5+2/2-6
+print "test: 5+2/2-6", " exp: 0", " obs: ", 5+2/2-6
 # mod before addition
-print "test: <5%2-2%6>", " expected: <-1>", " observed: ", 5%2-2%6
+print "test: 5%2-2%6", " exp: -1", " obs: ", 5%2-2%6
 # mod before subtraction
-print "test: <5%2+2%6 >", " expected: <3>", " observed: ", 5%2+2%6
+print "test: 5%2+2%6", " exp: 3", " obs: ", 5%2+2%6
 # addition/subtraction after mod
-print "test: <5+2%2-6>", " expected: <-1>", " observed: ", 5+2%2-6
+print "test: 5+2%2-6", " exp: -1", " obs: ", 5+2%2-6
 # modulus/multiply left to right
-print "test: <5%2*3>", " expected: <3>", " observed: ", 5%2*3
+print "test: 5%2*3", " exp: 3", " obs: ", 5%2*3
 # modulus/divide left to right
-print "test: <5%2/3>", " expected: <0.333...>", " observed: ", 5%2/3
+print "test: 5%2/3", " exp: 0.333...", " obs: ", 5%2/3
 # modulus/divide left to right
-print "test: <5/2%3>", " expected: <2.5>", " observed: ", 5/2%3
+print "test: 5/2%3", " exp: 2.5", " obs: ", 5/2%3
 # serial multiply
-print "test: <4*3*2>", " expected: <24>", " observed: ", 4*3*2
+print "test: 4*3*2", " exp: 24", " obs: ", 4*3*2
 # serial divide
-print "test: <4/3/2>", " expected: <0.666...>", " observed: ", 4/3/2
+print "test: 4/3/2", " exp: 0.666...", " obs: ", 4/3/2
 # serial mod
-print "test: <5%3%2>", " expected: <0>", " observed: ", 5%3%2
+print "test: 5%3%2", " exp: 0", " obs: ", 5%3%2
 # exp before multiply
-print "test: <2*2^3>", " expected: <16>", " observed: ", 2*2^3
+print "test: 2*2^3", " exp: 16", " obs: ", 2*2^3
 # serial exp
-print "test: <4^3^2>", " expected: <262144>", " observed: ", 4^3^2
+print "test: 4^3^2", " exp: 262144", " obs: ", 4^3^2
 # negative before exp
-print "test: <-2^2>", " expected: <4>", " observed: ", -2^2
+print "test: -2^2", " exp: 4", " obs: ", -2^2
 # double negative
-print "test: <- -2>", " expected: <2>", " observed: ", - -2
+print "test: - -2", " exp: 2", " obs: ", - -2
 # assignment first (0)
-print "test: <3>x=4>", " expected: <0>", " observed: ", 3>x=4
+print "test: 3>x=4", " exp: 0", " obs: ", 3>x=4
 # complement last (1)
-print "test: <!3>x=4>", " expected: <1>", " observed: ", !3>x=4
+print "test: !3>x=4", " exp: 1", " obs: ", !3>x=4
 # complement first (0)
-print "test: <!4&&0>", " expected: <0>", " observed: ", !4&&0
+print "test: !4&&0", " exp: 0", " obs: ", !4&&0
 # complement first (1)
-print "test: <!0||1>", " expected: <1>", " observed: ", !0||1
+print "test: !0||1", " exp: 1", " obs: ", !0||1
 # and priority
-print "test: <1||1&&0>", " expected: <1>", " observed: ", 1||1&&0
+print "test: 1||1&&0", " exp: 1", " obs: ", 1||1&&0
 # or priority
-print "test: <0&&1||1>", " expected: <1>", " observed: ", 0&&1||1
+print "test: 0&&1||1", " exp: 1", " obs: ", 0&&1||1
 
 ###### 5. special exps ######
-print "please enter a number to test read(): "
-print "test: x=read()", " expected: <your user input>", " observed: ",x=read()
-print "test: x=2", " expected: <2>", " observed: ", x=2
-print "test: sqrt(x)", " expected: <1.414...>", " observed: ", sqrt(x)
+##print "please enter a number to test read(): "##
+print "test: x=read()", " exp: your user input", " obs: " ##, x=read()##
+print "test: x=2", " exp: 2", " obs: ", x=2
+print "test: sqrt(x)", " exp: 1.414...", " obs: ", sqrt(x)
 
 ###### 6. statements ######
 # this entire test file
 
 ###### 7. math library ######
 # sine, cosine, e^x, ln(x)
-print "test: <s(1)>", " expected: <.84...>", " observed: ", s(1)
-print "test: <c(1)>", " expected: <.54...>", " observed: ", c(1)
-print "test: <l(3)>", " expected: <1.09...>", " observed: ", l(3)
-print "test: <e(1)>", " expected: <2.71...>", " observed: ", e(1)
-print "test: <e(l)>", " expected: <1.00...>", " observed: ", e(l)
-print "test: <l(e(1))>", " expected: <.99...>", " observed: ", l(e(1))
+print "test: s(1)", " exp: .84...", " obs: ", s(1)
+print "test: c(1)", " exp: .54...", " obs: ", c(1)
+print "test: l(3)", " exp: 1.09...", " obs: ", l(3)
+print "test: e(1)", " exp: 2.71...", " obs: ", e(1)
+print "test: e(l)", " exp: 1.00...", " obs: ", e(l)
+print "test: l(e(1))", " exp: .99...", " obs: ", l(e(1))
 
-print "test: <l(-1)>", " expected: <-inf/nan>", " observed: ", l(-1)
-print "test: <sqrt(-100)>", " expected: <error/nan>", " observed: ", sqrt(-100)
-print "test: <s(1000)>", " expected: <.82...>", " observed: ", s(1000)
+print "test: l(-1)", " exp: -inf/nan", " obs: ", l(-1)
+print "test: sqrt(-100)", " exp: error/nan", " obs: ", sqrt(-100)
+print "test: s(1000)", " exp: .82...", " obs: ", s(1000)
 
 ###### Part II - BC Programming Language Features ######
 
