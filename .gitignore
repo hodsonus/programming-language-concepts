@@ -1,6 +1,1 @@
-.antlr
-*.java
-*.class
-*.interp
-*.tokens
-*.jar
+*/.antlr
