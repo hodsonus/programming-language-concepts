@@ -2,31 +2,200 @@ grammar Grammar;
 
 @header {
     // imports
-    import java.util.*;
+    import java.util.Collections;
 }
 
-@members {}
+@members {
+    RootASTNode root = new RootASTNode();
+}
 
-/*
-exprList: NL*(topExpr ((';'|NL)+|EOF))+;
+allExpr: NL*(topExpr ((';'|NL)+|EOF))+ {
+    //TODO, uncomment the abstract method in ASTNode.java and implement evaluation logic in the ASTNode subclasses??
+    //root.evaluate();
+};
 
 topExpr:
     e=expr {
-        // store last variable in symbol table
-        GLOB.put("last", $e.i);
-        // print if enabled
-        if (_print_enabled) {
-            String out = Double.toString($e.i);
-            System.out.println(out);
-        }
-        // restore global state
-        _print_enabled = true;
-    }; */
+        root.children.add($e.i);
+    };
+
+expr returns [ASTNode i]:
+      c=ctrl {
+        $i = $c.i;
+    }
+    | n=num {
+        $i = $n.i;
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//TODO, does print belong here?
+ctrl returns [CtrlNode i]:
+      ifs=ifStatement {
+        $i = $ifs.i;
+    }
+    | w=whileLoop { 
+        $i = $w.i;
+    }
+    | f=forLoop { 
+        $i = $f.i;
+    }
+    | d=defineFxn { 
+        $i = $d.i;
+    };
+
+ifStatement returns [CtrlNode i]:
+    // TODO, the spacing after the condition may not be correct ??
+      'if(' n=num ')' ifExpL=exprList 'else' elseExpL=exprList {
+
+    }
+    | 'if(' n=num ')' expL=exprList {
+
+    };
+
+//TODO
+whileLoop returns [CtrlNode i]:
+    'while(' n=num ')' expL=exprList {
+
+    };
+
+//TODO
+forLoop returns [CtrlNode i]:
+    'for(' n1=num ';' n2=num ';' n3=num ')' expL=exprList {
+        
+    };
+
+//TODO
+defineFxn returns [CtrlNode i]:
+    'define' ID'(' fAL=fxnArgList ')' expL=exprList {
+
+    };
+
+fxnArgList returns []:
+    {};
+
+
+//TODO, THIS SHOULD PEEL OFF brackets and return some kind of node that represents either one expr or a list of them. variable number of children on this node, each of which is an expression.
+exprList returns [ExprListNode i]:
+    e=expr {
+
+    }
+    e=expr {
+
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 num returns [NumNode i]:
-      fxn
-    | parens
-    | uniArith
+      f=fxn { $i = $f.i; }
+    | p=parens { $i = $p.i; }
+    | uA=uniArith { $i = $uA.i; }
     /* binary arithmetic */
     | nl=num op1='^' nm=num op2='^' nr=num {
         $i = new BinNode($nl.i, $op1.getText(), new BinNode($nm.i, $op2.getText(), $nr.i));
@@ -40,12 +209,12 @@ num returns [NumNode i]:
     | nl=num op=('+'|'-') nr=num {
         $i = new BinNode($nl.i, $op.getText(), $nr.i);
     }
-    | assign
+    | a=assign { $i = $a.i; }
     /* binary relations */
     | nl=num op=('<=' |'<'|'>='|'>'|'=='|'!=') nr=num {
         $i = new BinNode($nl.i, $op.getText(), $nr.i);
     }
-    | uniLogic
+    | uL=uniLogic { $i = $uL.i; }
     /* binary logic */
     | nl=num op='&&' nr=num {
         $i = new BinNode($nl.i, $op.getText(), $nr.i);
@@ -114,9 +283,15 @@ NUM: ([0-9]+|[0-9]*'.'[0-9]*);
 WS: [ \t]+ -> skip;
 NL: [\r]?[\n];
 
-/*
+
+/* TODO, this stuff still needs to get implemented somewhere
 expr returns [double i]:
-    'read()' {
+    'print' epl=exprPrintList {
+        System.out.println($epl.i);
+        $i = 0; //don't care about return value since we print here.
+        _print_enabled = false;
+    }
+    | 'read()' {
         //implement the print statement above
         try { $i = SCNR.nextDouble(); }
         catch (InputMismatchException e) {
@@ -138,15 +313,5 @@ expr returns [double i]:
             $i = Math.log($e.i); // log=ln in math library
         else // $fxn.getText().equals("e(")
             $i = Math.exp($e.i); // exp = e^x in math library
-        _print_enabled = true;
-    }
-    | NUM {
-        $i = Double.parseDouble($NUM.text);
-        _print_enabled = true;
-    }
-    | ID {
-        String key = $ID.getText();
-        Double val = GLOB.get(key);
-        $i = (val == null) ? 0 : val;
         _print_enabled = true;
     }; */

@@ -1,3 +1,3 @@
-public abstract class NumNode extends ASTNode {
+public abstract class NumNode extends ExprNode {
 
 }
