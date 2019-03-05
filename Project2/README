@@ -8,6 +8,7 @@ Run Code: (using grun resting rig)
 antlr4 ./Grammar.g4 && javac Grammar*.java && grun Grammar exprList ./test.bc
 
 clear && antlr4 -o ./bin/ ./Grammar.g4 && javac *.java -d ./bin/ && javac ./bin/*.java -d ./bin/
+clear && java -jar ../antlr-4.7.2-complete.jar -o ./bin/ ./Grammar.g4 && javac *.java -d ./bin/ && javac ./bin/*.java -d ./bin/
 1. Clear the console
 2. Generate ANTLR4 .java files into the ./bin/ directory
 3. Compile the .java files in the root project directory (the AST nodes) into the ./bin/ folder
