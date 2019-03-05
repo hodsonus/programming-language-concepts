@@ -2,24 +2,10 @@ grammar Grammar;
 
 @header {
     // imports
-    // import java.util.HashMap;
-    // import java.util.Scanner;
-    // import java.util.InputMismatchException;
     import java.util.*;
-    // import AssNode.java;
-    // import ASTNode.java;
-    // import BinNode.java;
-    // import FxnNode.java;
-    // import IDNode.java;
-    // import IncDecNode.java;
-    // import NumNode.java;
-    // import UniNode.java;
-    // import ValNode.java;
 }
 
-@members {
-
-}
+@members {}
 
 /*
 exprList: NL*(topExpr ((';'|NL)+|EOF))+;
@@ -38,9 +24,10 @@ topExpr:
     }; */
 
 num returns [NumNode i]:
-     fxn
+      fxn
     | parens
     | uniArith
+    /* binary arithmetic */
     | nl=num op1='^' nm=num op2='^' nr=num {
         $i = new BinNode($nl.i, $op1.getText(), new BinNode($nm.i, $op2.getText(), $nr.i));
     }
@@ -54,10 +41,12 @@ num returns [NumNode i]:
         $i = new BinNode($nl.i, $op.getText(), $nr.i);
     }
     | assign
+    /* binary relations */
     | nl=num op=('<=' |'<'|'>='|'>'|'=='|'!=') nr=num {
         $i = new BinNode($nl.i, $op.getText(), $nr.i);
     }
     | uniLogic
+    /* binary logic */
     | nl=num op='&&' nr=num {
         $i = new BinNode($nl.i, $op.getText(), $nr.i);
     }
@@ -72,7 +61,7 @@ num returns [NumNode i]:
     };
 
 fxn returns [NumNode i]:
-     ID '(' numList=numArgList ')' {
+      ID '(' numList=numArgList ')' {
          ArrayList<NumNode> solvedArr = $numList.i;
          Collections.reverse(solvedArr);
          $i = new FxnNode($ID.getText(), solvedArr);
@@ -105,28 +94,9 @@ uniArith returns [NumNode i]:
         $i = new UniNode($n.i, $op.getText());
     };
 
-binArith returns [NumNode i]:
-    nl=num op1='^' nm=num op2='^' nr=num {
-        $i = new BinNode($nl.i, $op1.getText(), new BinNode($nm.i, $op2.getText(), $nr.i));
-    }
-    | nl=num op='^' nr=num {
-        $i = new BinNode($nl.i, $op.getText(), $nr.i);
-    }
-    | nl=num op=('*'|'/'|'%') nr=num {
-        $i = new BinNode($nl.i, $op.getText(), $nr.i);
-    }
-    | nl=num op=('+'|'-') nr=num {
-        $i = new BinNode($nl.i, $op.getText(), $nr.i);
-    };
-
 assign returns [NumNode i]:
-    ID op=('='|'+='|'-='|'*='|'/=') n=num {
+      ID op=('='|'+='|'-='|'*='|'/=') n=num {
         $i = new AssNode($ID.getText(), $op.getText(), $n.i);
-    };
-
-binRelat returns [NumNode i]:
-    nl=num op=('<=' |'<'|'>='|'>'|'=='|'!=') nr=num {
-        $i = new BinNode($nl.i, $op.getText(), $nr.i);
     };
 
 uniLogic returns [NumNode i]:
@@ -134,24 +104,15 @@ uniLogic returns [NumNode i]:
         $i = new UniNode($n.i, $op.getText());
     };
 
-binLogic returns [NumNode i]:
-      nl=num op='&&' nr=num {
-        $i = new BinNode($nl.i, $op.getText(), $nr.i);
-    }
-    | nl=num op='||' nr=num {
-        $i = new BinNode($nl.i, $op.getText(), $nr.i);
-    };
-
-
 BLOCK: '/*'.*?'*/' -> skip;
 INLINE: '#'~[\r\n]* -> skip;
 
 STRING: '"'.*?'"';
 ID: [a-z]+[_]*[a-z]*;
 NUM: ([0-9]+|[0-9]*'.'[0-9]*);
+
 WS: [ \t]+ -> skip;
 NL: [\r]?[\n];
-
 
 /*
 expr returns [double i]:
