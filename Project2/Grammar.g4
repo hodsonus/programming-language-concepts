@@ -6,7 +6,15 @@ grammar Grammar;
     // import java.util.Scanner;
     // import java.util.InputMismatchException;
     import java.util.*;
-    import *.java;
+    // import AssNode.java;
+    // import ASTNode.java;
+    // import BinNode.java;
+    // import FxnNode.java;
+    // import IDNode.java;
+    // import IncDecNode.java;
+    // import NumNode.java;
+    // import UniNode.java;
+    // import ValNode.java;
 }
 
 @members {
@@ -30,14 +38,32 @@ topExpr:
     }; */
 
 num returns [NumNode i]:
-      fxn
+     fxn
     | parens
     | uniArith
-    | binArith
+    | nl=num op1='^' nm=num op2='^' nr=num {
+        $i = new BinNode($nl.i, $op1.getText(), new BinNode($nm.i, $op2.getText(), $nr.i));
+    }
+    | nl=num op='^' nr=num {
+        $i = new BinNode($nl.i, $op.getText(), $nr.i);
+    }
+    | nl=num op=('*'|'/'|'%') nr=num {
+        $i = new BinNode($nl.i, $op.getText(), $nr.i);
+    }
+    | nl=num op=('+'|'-') nr=num {
+        $i = new BinNode($nl.i, $op.getText(), $nr.i);
+    }
     | assign
-    | binRelat
+    | nl=num op=('<=' |'<'|'>='|'>'|'=='|'!=') nr=num {
+        $i = new BinNode($nl.i, $op.getText(), $nr.i);
+    }
     | uniLogic
-    | binLogic
+    | nl=num op='&&' nr=num {
+        $i = new BinNode($nl.i, $op.getText(), $nr.i);
+    }
+    | nl=num op='||' nr=num {
+        $i = new BinNode($nl.i, $op.getText(), $nr.i);
+    }
     | ID {
         $i = new IDNode(  $ID.getText()  );
     }
@@ -47,18 +73,20 @@ num returns [NumNode i]:
 
 fxn returns [NumNode i]:
      ID '(' numList=numArgList ')' {
-         $i = new FxnNode($ID.getText(), Collections.reverse($numList.i));
+         ArrayList<NumNode> solvedArr = $numList.i;
+         Collections.reverse(solvedArr);
+         $i = new FxnNode($ID.getText(), solvedArr);
     };
 numArgList returns [ArrayList<NumNode> i]:
       n=num ',' nl=numArgList {
-        $i = $nl.i.append($n.i);
+        ArrayList<NumNode> partSolvedArr = $nl.i;
+        partSolvedArr.add($n.i);
+        $i = partSolvedArr;
     }
     | n=num {
-        // ArrayList<ASTNode> lis = new ArrayList<ASTNode>();
-        // lis.append($n.i);
-        // $i = lis;
-
-        $i = (new ArrayList<ASTNode>()).append($n.i);
+        ArrayList<NumNode> retList = new ArrayList<NumNode>();
+        retList.add($n.i);
+        $i = retList;
     };
 
 parens returns [NumNode i]:

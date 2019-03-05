@@ -6,6 +6,5 @@ public class UniNode extends NumNode {
     public UniNode(NumNode n, String op) {
         this.n = n;
         this.op = op;
-        this.isPrefix = isPrefix;
     }
 }
