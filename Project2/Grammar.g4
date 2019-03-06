@@ -1,10 +1,16 @@
 grammar Grammar;
 
 /* TODO
+
+    At the moment, we should probably implement some toString methods or printouts in places to ensure the tree is generating correctly
+    Then we need to write the evaluation of the tree
+
     search through the document and complete all TODO that exist
+
     implement the RETURN keyword ???????????
         there is some other stuff that needs to be implemented like this im sure that I cannot think of off the top of my head
         consult the docs to determine that I think
+    
 */
 
 @header {
