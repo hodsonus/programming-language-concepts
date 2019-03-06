@@ -8,25 +8,26 @@ grammar Grammar;
     search through the document and complete all TODO that exist
 
     implement the RETURN keyword ???????????
-        there is some other stuff that needs to be implemented like this im sure that I cannot think of off the top of my head
-        consult the docs to determine that I think
-    
+      there is some other stuff that needs to be implemented like this im sure that I cannot think of off the top of my head
+      consult the docs to determine that I think
+
 */
 
 @header {
-    // imports
+    import Core.*;
+    import CtrlNodes.*;
+    import NumNodes.*;
     import java.util.LinkedList;
     import java.util.ArrayList;
 }
 
 @members {
     RootASTNode root = new RootASTNode();
-    Evaluator eval = new Evaluator();
 }
 
 allExpr: NL*(topExpr ((';'|NL)+|EOF))+ {
     //TODO, uncomment the abstract method in ASTNode.java and implement evaluation logic in the ASTNode subclasses??
-    //eval.evaluate();
+    //root.evaluate();
 };
 
 topExpr:
@@ -54,7 +55,7 @@ expr returns [ExprNode i]:
 // java stacks dont work
     // for whatever reason, they would produce a list that goes from b -> a
 exprList returns [LinkedList<ExprNode> i]:
-    e=expr DELIM eL=exprList {
+      e=expr DELIM eL=exprList {
         LinkedList<ExprNode> partSolvedList = $eL.i;
         partSolvedList.push($e.i);
         $i = partSolvedList;
@@ -66,7 +67,7 @@ exprList returns [LinkedList<ExprNode> i]:
     };
 
 bracketedExprs returns [ArrayList<ExprNode> i]:
-    '{' eL=exprList '}' {
+      '{' eL=exprList '}' {
         $i = new ArrayList($eL.i);
     };
 
@@ -76,13 +77,13 @@ ctrl returns [CtrlNode i]:
       ifs=ifStatement {
         $i = $ifs.i;
     }
-    | w=whileLoop { 
+    | w=whileLoop {
         $i = $w.i;
     }
-    | f=forLoop { 
+    | f=forLoop {
         $i = $f.i;
     }
-    | d=defineFxn { 
+    | d=defineFxn {
         $i = $d.i;
     };
 
@@ -98,19 +99,19 @@ ifStatement returns [IfNode i]:
     };
 
 whileLoop returns [WhileNode i]:
-    'while(' n=num ')' expL=exprList {
+      'while(' n=num ')' expL=exprList {
         $i = new WhileNode($n.i, new ArrayList($expL.i));
     };
 
 //TODO, should the below variable 'n1' be of type assign instead of num ? not really sure what to do with that
 forLoop returns [ForNode i]:
-    'for(' n1=num ';' n2=num ';' n3=num ')' expL=exprList {
+      'for(' n1=num ';' n2=num ';' n3=num ')' expL=exprList {
         $i = new ForNode($n1.i, $n2.i, $n3.i, new ArrayList($expL.i));
     };
 
 // consult the documentation above exprList to understand why we use LinkedList instead of ArrayList or Stack here
 defineFxn returns [CtrlNode i]:
-    'define' ID'(' fAL=fxnArgList ')' expL=exprList {
+      'define' ID'(' fAL=fxnArgList ')' expL=exprList {
         $i = new DefineFxnNode($ID.getText(), new ArrayList($fAL.i), new ArrayList($expL.i));
     };
 fxnArgList returns [LinkedList<String> i]:
@@ -186,10 +187,10 @@ parens returns [NumNode i]:
 
 uniArith returns [NumNode i]:
       op=('++'|'--') ID {
-        $i = new IncDecNode($op.getText(), $ID.getText(), true);
+        $i = new SelfAssNode($ID.getText(), $op.getText(), true);
     }
     | ID op=('++'|'--') {
-        $i = new IncDecNode($op.getText(), $ID.getText(), false);
+        $i = new SelfAssNode($ID.getText(), $op.getText(), false);
     }
     | op='-' n=num {
         $i = new UniNode($n.i, $op.getText());

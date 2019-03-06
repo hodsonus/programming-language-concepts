@@ -1,5 +1,7 @@
+package NumNodes;
+
 public class BinNode extends NumNode {
-    
+
     public NumNode nl, nr;
     public String op;
 

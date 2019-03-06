@@ -1,5 +1,7 @@
+package NumNodes;
+
 public class AssNode extends NumNode {
-    
+
     public String id, op;
     public NumNode n;
 
