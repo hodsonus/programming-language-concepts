@@ -15,4 +15,23 @@ public class ForNode extends LoopNode {
         this.update = update;
         this.expressions = expressions;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder rep = new StringBuilder();
+        rep.append("for (");
+        rep.append(assignment.toString());
+        rep.append("; ");
+        rep.append(condition.toString());
+        rep.append("; ");
+        rep.append(update.toString());
+        rep.append(") {\n");
+        for (ExprNode expr : expressions) {
+            rep.append("\t");
+            rep.append(expr.toString());
+            rep.append("\n");
+        }
+        rep.append("}");
+        return rep.toString();
+    }
 }

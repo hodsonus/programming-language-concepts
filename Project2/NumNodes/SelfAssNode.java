@@ -8,4 +8,17 @@ public class SelfAssNode extends AssNode {
         super(id, op, new IDNode(id));
         this.isPrefix = isPrefix;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder rep = new StringBuilder();
+        if (isPrefix) {
+            rep.append(op);
+        }
+        rep.append(id);
+        if (!isPrefix) {
+            rep.append(op);
+        }
+        return rep.toString();
+    }
 }

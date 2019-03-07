@@ -9,4 +9,9 @@ public class UniNode extends NumNode {
         this.n = n;
         this.op = op;
     }
+
+    @Override
+    public String toString() {
+        return (op + n.toString());
+    }
 }

@@ -10,4 +10,15 @@ public class AssNode extends NumNode {
         this.op = op;
         this.n = n;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder rep = new StringBuilder();
+        rep.append(id);
+        rep.append(" ");
+        rep.append(op);
+        rep.append(" ");
+        rep.append(n.toString());
+        return rep.toString();
+    }
 }

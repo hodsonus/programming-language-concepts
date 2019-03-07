@@ -28,6 +28,7 @@ grammar Grammar;
 allExpr: NL*(topExpr ((';'|NL)+|EOF))+ {
     //TODO, uncomment the abstract method in ASTNode.java and implement evaluation logic in the ASTNode subclasses??
     //root.evaluate();
+    System.out.println(root);
 };
 
 topExpr:

@@ -7,4 +7,9 @@ public class ValNode extends NumNode {
     public ValNode(double val) {
         this.val = val;
     }
+
+    @Override
+    public String toString() {
+        return String.valueOf(val);
+    }
 }

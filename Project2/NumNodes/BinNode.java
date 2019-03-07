@@ -10,4 +10,15 @@ public class BinNode extends NumNode {
         this.nr = nr;
         this.op = op;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder rep = new StringBuilder();
+        rep.append(nl.toString());
+        rep.append(" ");
+        rep.append(op);
+        rep.append(" ");
+        rep.append(nr.toString());
+        return rep.toString();
+    }
 }

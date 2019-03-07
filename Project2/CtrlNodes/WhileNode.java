@@ -11,4 +11,19 @@ public class WhileNode extends LoopNode {
         this.condition = condition;
         this.expressions = expressions;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder rep = new StringBuilder();
+        rep.append("while (");
+        rep.append(condition.toString());
+        rep.append(") {\n");
+        for (ExprNode expr : expressions) {
+            rep.append("\t");
+            rep.append(expr.toString());
+            rep.append("\n");
+        }
+        rep.append("}");
+        return rep.toString();
+    }
 }

@@ -7,4 +7,9 @@ public class IDNode extends NumNode {
     public IDNode(String id) {
         this.id = id;
     }
+
+    @Override
+    public String toString() {
+        return id;
+    }
 }
