@@ -19,6 +19,7 @@ Functionality:
 - 
 
 Exceptional Behavior:
+- Every program MUST terminate in either a newline or a semicolon. This includes braces, they must be followed be one of these.
 - Print function was implemented using Java println() rather than print() by design.
 - Modulus was implemented simply using the integer `%` operator without scaling for floats/doubles.
 - Depending on the system, un/comment line 180 to properly parse escape characters in print strings.

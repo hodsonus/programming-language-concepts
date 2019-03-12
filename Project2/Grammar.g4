@@ -40,36 +40,6 @@ expr returns [ExprNode i]:
         $i = $n.i;
     };
 
-// the reason we use LinkedList is because they behave like a stack and the traversal makes intuitive sense
-// for example, the following code:
-    // lis = new LinkedList();
-    // lis.push(b)
-    // lis.push(a)
-    // myArrLis = new ArrList(lis);
-// produces myArrLis, an iterable arraylist that goes from a -> b
-// this way we dont have to do any reverses, etc.
-// the only thing we have to do once we get out of here is create the new arraylist object from the linkedlist object
-// java stacks dont work
-    // for whatever reason, they would produce a list that goes from b -> a
-
-//Our ctrl is literally the 'statement' in the BC docs. https://www.gnu.org/software/bc/manual/html_mono/bc.html#SEC15
-ctrl returns [CtrlNode i]:
-      ifs=ifStatement {
-        $i = $ifs.i;
-    }
-    | w=whileLoop {
-        $i = $w.i;
-    }
-    | f=forLoop {
-        $i = $f.i;
-    }
-    | d=defineFxn {
-        $i = $d.i;
-    }
-    | p=printExpr {
-        $i = $p.i;
-    };
-
 printExpr returns [PrintNode i]:
     'print' pL=printList {
         ArrayList<ValueNode> lis = new ArrayList($pL.i);
@@ -134,19 +104,22 @@ printList returns [LinkedList<ValueNode> i]:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+ctrl returns [CtrlNode i]:
+      ifs=ifStatement {
+        $i = $ifs.i;
+    }
+    | w=whileLoop {
+        $i = $w.i;
+    }
+    | f=forLoop {
+        $i = $f.i;
+    }
+    | d=defineFxn {
+        $i = $d.i;
+    }
+    | p=printExpr {
+        $i = $p.i;
+    };
 
 
 
@@ -161,7 +134,7 @@ exprList returns [LinkedList<ExprNode> i]:
         partSolvedList.push($e.i);
         $i = partSolvedList;
     }
-    | e=expr {
+    | e=expr { 
         LinkedList<ExprNode> retList = new LinkedList<ExprNode>();
         retList.push($e.i);
         $i = retList;
@@ -172,6 +145,19 @@ bracketedExprs returns [ArrayList<ExprNode> i]:
         $i = new ArrayList($eL.i);
     };
 
+whileLoop returns [WhileNode i]:
+      'while(' n=num ')' ('\r'?'\n')? brackExpr=bracketedExprs {
+        $i = new WhileNode($n.i, new ArrayList($brackExpr.i));
+    }
+    | 'while(' n=num ')' ('\r'?'\n')? e=expr {
+        ArrayList<ExprNode> lis = new ArrayList<ExprNode>();
+        lis.add($e.i);
+        $i = new WhileNode($n.i, lis);
+    };
+
+
+
+
 // TODO, the spacing after the condition may not be correct ?? I think that with how we skip whitespace it is valid to have the parentheses right next to the statements, like 'if(1)2+3;'
 // This, of course, applies to the while loops, for loops, and defineFxns too
 // im not sure if we even care about this corner case, it doesnt seem THAT bad and it would result in a lot of reworking delimiters I think
@@ -181,16 +167,6 @@ ifStatement returns [IfNode i]:
     }
     | 'if(' n=num ')' ifExpL=exprList {
         $i = new IfNode($n.i, new ArrayList($ifExpL.i), null);
-    };
-
-whileLoop returns [WhileNode i]:
-      'while(' n=num ')' brackExpr=bracketedExprs {
-        $i = new WhileNode($n.i, new ArrayList($brackExpr.i));
-    }
-    | 'while(' n=num ')' (';'|NL)? e=expr {
-        ArrayList<ExprNode> lis = new ArrayList<ExprNode>();
-        lis.add($e.i);
-        $i = new WhileNode($n.i, lis);
     };
 
 //TODO, should the below variable 'n1' be of type assign instead of num ? not really sure what to do with that
