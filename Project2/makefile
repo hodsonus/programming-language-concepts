@@ -15,11 +15,8 @@ clean:
 	if [ -d .antlr ]; then rm -r .antlr; fi
 
 build:
-	java -jar ../antlr-4.7.2-complete.jar Grammar.g4 -visitor
-	find -name "*.java" > src.txt && javac -cp .:../antlr-4.7.2-complete.jar @src.txt && rm src.txt
+	java -jar ../antlr-4.7.2-complete.jar Grammar.g4
+	javac -cp .:../antlr-4.7.2-complete.jar *.java
 
 test:
-	#cd .antlr && java org.antlr.v4.gui.TestRig Grammar allExpr ../misc.txt
-	cd .antlr; java -cp ${TEST_PATH} Grammar exprList ../test.bc
-	java -cp antlr-4.0-complete.jar org.antlr.v4.Tool Mu.g4 -visitorjavac -cp antlr-4.0-complete.jar *.java
-	java -cp .:antlr-4.0-complete.jar Main
+	java Main

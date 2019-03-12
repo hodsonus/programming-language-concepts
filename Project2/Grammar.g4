@@ -25,10 +25,11 @@ grammar Grammar;
     RootASTNode root = new RootASTNode();
 }
 
-allExpr: NL*(topExpr ((';'|NL)+|EOF))+ {
+allExpr returns [RootASTNode i]: 
+    NL*(topExpr ((';'|NL)+|EOF))+ {
     //TODO, uncomment the abstract method in ASTNode.java and implement evaluation logic in the ASTNode subclasses??
     //root.evaluate();
-    System.out.println(root);
+    $i = root;
 };
 
 topExpr:
