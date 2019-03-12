@@ -1,7 +1,7 @@
 package CtrlNodes;
 
 import Core.ExprNode;
-import NumNodes.NumNode;
+import ValueNodes.NumNode;
 
 import java.util.ArrayList;
 

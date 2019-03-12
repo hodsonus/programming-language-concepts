@@ -1,4 +1,4 @@
-package NumNodes;
+package ValueNodes;
 
 public class IDNode extends NumNode {
 

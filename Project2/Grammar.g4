@@ -2,9 +2,6 @@ grammar Grammar;
 
 /* TODO
 
-    At the moment, we should probably implement some toString methods or printouts in places to ensure the tree is generating correctly
-    Then we need to write the evaluation of the tree
-
     search through the document and complete all TODO that exist
 
     implement the RETURN keyword ???????????
@@ -16,7 +13,7 @@ grammar Grammar;
 @header {
     import Core.*;
     import CtrlNodes.*;
-    import NumNodes.*;
+    import ValueNodes.*;
     import java.util.LinkedList;
     import java.util.ArrayList;
 }
@@ -26,9 +23,7 @@ grammar Grammar;
 }
 
 allExpr returns [RootASTNode i]: 
-    NL*(topExpr ((';'|NL)+|EOF))+ {
-    //TODO, uncomment the abstract method in ASTNode.java and implement evaluation logic in the ASTNode subclasses??
-    //root.evaluate();
+    ';'*(topExpr)*EOF {
     $i = root;
 };
 
@@ -38,10 +33,10 @@ topExpr:
     };
 
 expr returns [ExprNode i]:
-      c=ctrl {
+      ';'* c=ctrl ';'+ {
         $i = $c.i;
     }
-    | n=num {
+    | ';'* n=num ';'+ {
         $i = $n.i;
     };
 
@@ -56,24 +51,7 @@ expr returns [ExprNode i]:
 // the only thing we have to do once we get out of here is create the new arraylist object from the linkedlist object
 // java stacks dont work
     // for whatever reason, they would produce a list that goes from b -> a
-exprList returns [LinkedList<ExprNode> i]:
-      e=expr DELIM eL=exprList {
-        LinkedList<ExprNode> partSolvedList = $eL.i;
-        partSolvedList.push($e.i);
-        $i = partSolvedList;
-    }
-    e=expr {
-        LinkedList<ExprNode> retList = new LinkedList<ExprNode>();
-        retList.push($e.i);
-        $i = retList;
-    };
 
-bracketedExprs returns [ArrayList<ExprNode> i]:
-      '{' eL=exprList '}' {
-        $i = new ArrayList($eL.i);
-    };
-
-//TODO, does print belong here?
 //Our ctrl is literally the 'statement' in the BC docs. https://www.gnu.org/software/bc/manual/html_mono/bc.html#SEC15
 ctrl returns [CtrlNode i]:
       ifs=ifStatement {
@@ -87,35 +65,146 @@ ctrl returns [CtrlNode i]:
     }
     | d=defineFxn {
         $i = $d.i;
+    }
+    | p=printExpr {
+        $i = $p.i;
+    };
+
+printExpr returns [PrintNode i]:
+    'print' pL=printList {
+        ArrayList<ValueNode> lis = new ArrayList($pL.i);
+        $i = new PrintNode(lis);
+    };
+
+printList returns [LinkedList<ValueNode> i]:
+      n=num ',' pL=printList {
+        LinkedList<ValueNode> partSolvedList = $pL.i;
+        partSolvedList.push($n.i);
+        $i = partSolvedList;
+    }
+    | str=STRING ',' pL=printList {
+        LinkedList<ValueNode> partSolvedList = $pL.i;
+        String temp = $str.text.substring(1,$str.text.length()-1);
+        // temp = temp.replace("\\n","\n").replace("\\t","\t").replace("\\r","\r");
+        partSolvedList.push(new StringNode(temp));
+        $i = partSolvedList;
+    }
+    | n=num {
+        LinkedList<ValueNode> retList = new LinkedList<ValueNode>();
+        retList.push($n.i);
+        $i = retList;
+    }
+    | str=STRING {
+        LinkedList<ValueNode> retList = new LinkedList<ValueNode>();
+        String temp = $str.text.substring(1,$str.text.length()-1);
+        // temp = temp.replace("\\n","\n").replace("\\t","\t").replace("\\r","\r");
+        retList.push(new StringNode(temp));
+        $i = retList;
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+exprList returns [LinkedList<ExprNode> i]:
+      e=expr eL=exprList {
+        LinkedList<ExprNode> partSolvedList = $eL.i;
+        partSolvedList.push($e.i);
+        $i = partSolvedList;
+    }
+    | e=expr {
+        LinkedList<ExprNode> retList = new LinkedList<ExprNode>();
+        retList.push($e.i);
+        $i = retList;
+    };
+
+bracketedExprs returns [ArrayList<ExprNode> i]:
+      '{' (';')* eL=exprList (';')* '}' {
+        $i = new ArrayList($eL.i);
     };
 
 // TODO, the spacing after the condition may not be correct ?? I think that with how we skip whitespace it is valid to have the parentheses right next to the statements, like 'if(1)2+3;'
 // This, of course, applies to the while loops, for loops, and defineFxns too
 // im not sure if we even care about this corner case, it doesnt seem THAT bad and it would result in a lot of reworking delimiters I think
 ifStatement returns [IfNode i]:
-      'if(' n=num ')' ifExpL=exprList 'else' elseExpL=exprList {
+      'if(' n=num ')' ifExpL=bracketedExprs 'else' elseExpL=bracketedExprs {
         $i = new IfNode($n.i, new ArrayList($ifExpL.i), new ArrayList($elseExpL.i));
     }
-    | 'if(' n=num ')' ifExpL=exprList {
+    | 'if(' n=num ')' ifExpL=bracketedExprs {
         $i = new IfNode($n.i, new ArrayList($ifExpL.i), null);
     };
 
 whileLoop returns [WhileNode i]:
-      'while(' n=num ')' expL=exprList {
-        $i = new WhileNode($n.i, new ArrayList($expL.i));
+      'while(' n=num ')' brackExpr=bracketedExprs {
+        $i = new WhileNode($n.i, new ArrayList($brackExpr.i));
+    }
+    | 'while(' n=num ')' e=expr {
+        ArrayList<ExprNode> lis = new ArrayList<ExprNode>();
+        lis.add($e.i);
+        $i = new WhileNode($n.i, lis);
     };
 
 //TODO, should the below variable 'n1' be of type assign instead of num ? not really sure what to do with that
 forLoop returns [ForNode i]:
-      'for(' n1=num ';' n2=num ';' n3=num ')' expL=exprList {
+      'for(' n1=num n2=num n3=num ')' expL=bracketedExprs {
         $i = new ForNode($n1.i, $n2.i, $n3.i, new ArrayList($expL.i));
     };
 
 // consult the documentation above exprList to understand why we use LinkedList instead of ArrayList or Stack here
 defineFxn returns [CtrlNode i]:
-      'define' ID'(' fAL=fxnArgList ')' expL=exprList {
+      'define' ID'(' fAL=fxnArgList ')' expL=bracketedExprs {
         $i = new DefineFxnNode($ID.getText(), new ArrayList($fAL.i), new ArrayList($expL.i));
     };
+    
 fxnArgList returns [LinkedList<String> i]:
       ID ',' fAL=fxnArgList {
         LinkedList<String> partSolvedList = $fAL.i;
@@ -127,6 +216,59 @@ fxnArgList returns [LinkedList<String> i]:
         retList.push($ID.getText());
         $i = retList;
     };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 num returns [NumNode i]:
       f=fxn { $i = $f.i; }
@@ -162,7 +304,7 @@ num returns [NumNode i]:
         $i = new IDNode(  $ID.getText()  );
     }
     | NUM {
-        $i = new ValNode(  Double.parseDouble($NUM.getText())  );
+        $i = new ConstNode(  Double.parseDouble($NUM.getText())  );
     };
 
 fxn returns [FxnNode i]:
@@ -209,25 +351,18 @@ uniLogic returns [UniNode i]:
     };
 
 BLOCK: '/*'.*?'*/' -> skip;
+// INLINE: '#'.*NL -> skip;
 INLINE: '#'~[\r\n]* -> skip;
-
-//TODO, this should be any valid delimiter between expressions
-DELIM: (';'|NL)+;
 
 STRING: '"'.*?'"';
 ID: [a-z]+[_]*[a-z]*;
 NUM: ([0-9]+|[0-9]*'.'[0-9]*);
 
-WS: [ \t]+ -> skip;
-NL: [\r]?[\n];
+WS: [ \t\r\n]+ -> skip;
+// NL: [\r]?[\n];
 
 /* TODO, this stuff still needs to get implemented somewhere
 expr returns [double i]:
-    'print' epl=exprPrintList {
-        System.out.println($epl.i);
-        $i = 0; //don't care about return value since we print here.
-        _print_enabled = false;
-    }
     | 'read()' {
         //implement the print statement above
         try { $i = SCNR.nextDouble(); }

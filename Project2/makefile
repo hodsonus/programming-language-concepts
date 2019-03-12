@@ -1,5 +1,6 @@
 # Run from Project 2 directory.
 # `make` to build & test, `-s` to suppress output
+# TODO, add .jar to current directory?
 
 LOCAL_ANTLR = *.g4
 LOCAL_JAVA = *.java

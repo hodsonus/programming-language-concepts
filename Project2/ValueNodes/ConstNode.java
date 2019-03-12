@@ -1,10 +1,10 @@
-package NumNodes;
+package ValueNodes;
 
-public class ValNode extends NumNode {
+public class ConstNode extends NumNode {
 
     public double val;
 
-    public ValNode(double val) {
+    public ConstNode(double val) {
         this.val = val;
     }
 

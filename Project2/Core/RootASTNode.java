@@ -13,6 +13,7 @@ public class RootASTNode extends ASTNode {
 
     @Override
     public String toString() {
+        if (children.size() == 0) return "";
         StringBuilder rep = new StringBuilder();
         for (ExprNode child : children) {
             rep.append(child.toString());
