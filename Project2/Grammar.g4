@@ -23,7 +23,7 @@ grammar Grammar;
 }
 
 allExpr returns [RootASTNode i]: 
-    ';'*(topExpr)*EOF {
+    (NL|';')*(topExpr (NL|';')+)*(EOF) {
     $i = root;
 };
 
@@ -33,10 +33,10 @@ topExpr:
     };
 
 expr returns [ExprNode i]:
-      ';'* c=ctrl ';'+ {
+      c=ctrl {
         $i = $c.i;
     }
-    | ';'* n=num ';'+ {
+    | n=num {
         $i = $n.i;
     };
 
@@ -156,7 +156,7 @@ printList returns [LinkedList<ValueNode> i]:
 
 
 exprList returns [LinkedList<ExprNode> i]:
-      e=expr eL=exprList {
+      e=expr (';'|NL)+ eL=exprList {
         LinkedList<ExprNode> partSolvedList = $eL.i;
         partSolvedList.push($e.i);
         $i = partSolvedList;
@@ -168,7 +168,7 @@ exprList returns [LinkedList<ExprNode> i]:
     };
 
 bracketedExprs returns [ArrayList<ExprNode> i]:
-      '{' (';')* eL=exprList (';')* '}' {
+      '{' (';'|NL)* eL=exprList (';'|NL)* '}' {
         $i = new ArrayList($eL.i);
     };
 
@@ -176,10 +176,10 @@ bracketedExprs returns [ArrayList<ExprNode> i]:
 // This, of course, applies to the while loops, for loops, and defineFxns too
 // im not sure if we even care about this corner case, it doesnt seem THAT bad and it would result in a lot of reworking delimiters I think
 ifStatement returns [IfNode i]:
-      'if(' n=num ')' ifExpL=bracketedExprs 'else' elseExpL=bracketedExprs {
+      'if(' n=num ')' ifExpL=exprList 'else' elseExpL=exprList {
         $i = new IfNode($n.i, new ArrayList($ifExpL.i), new ArrayList($elseExpL.i));
     }
-    | 'if(' n=num ')' ifExpL=bracketedExprs {
+    | 'if(' n=num ')' ifExpL=exprList {
         $i = new IfNode($n.i, new ArrayList($ifExpL.i), null);
     };
 
@@ -187,7 +187,7 @@ whileLoop returns [WhileNode i]:
       'while(' n=num ')' brackExpr=bracketedExprs {
         $i = new WhileNode($n.i, new ArrayList($brackExpr.i));
     }
-    | 'while(' n=num ')' e=expr {
+    | 'while(' n=num ')' (';'|NL)? e=expr {
         ArrayList<ExprNode> lis = new ArrayList<ExprNode>();
         lis.add($e.i);
         $i = new WhileNode($n.i, lis);
@@ -195,13 +195,13 @@ whileLoop returns [WhileNode i]:
 
 //TODO, should the below variable 'n1' be of type assign instead of num ? not really sure what to do with that
 forLoop returns [ForNode i]:
-      'for(' n1=num n2=num n3=num ')' expL=bracketedExprs {
+      'for(' n1=num ';' n2=num ';' n3=num ')' expL=exprList {
         $i = new ForNode($n1.i, $n2.i, $n3.i, new ArrayList($expL.i));
     };
 
 // consult the documentation above exprList to understand why we use LinkedList instead of ArrayList or Stack here
 defineFxn returns [CtrlNode i]:
-      'define' ID'(' fAL=fxnArgList ')' expL=bracketedExprs {
+      'define' ID'(' fAL=fxnArgList ')' expL=exprList {
         $i = new DefineFxnNode($ID.getText(), new ArrayList($fAL.i), new ArrayList($expL.i));
     };
     
@@ -358,8 +358,8 @@ STRING: '"'.*?'"';
 ID: [a-z]+[_]*[a-z]*;
 NUM: ([0-9]+|[0-9]*'.'[0-9]*);
 
-WS: [ \t\r\n]+ -> skip;
-// NL: [\r]?[\n];
+WS: [ \t]+ -> skip;
+NL: [\r]?[\n];
 
 /* TODO, this stuff still needs to get implemented somewhere
 expr returns [double i]:

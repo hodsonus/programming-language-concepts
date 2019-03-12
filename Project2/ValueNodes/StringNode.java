@@ -10,6 +10,6 @@ public class StringNode extends ValueNode {
 
     @Override
     public String toString() {
-        return str;
+        return "\"" + str + "\"";
     }
 }

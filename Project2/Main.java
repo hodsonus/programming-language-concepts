@@ -6,7 +6,7 @@ import Core.RootASTNode;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        GrammarLexer lexer = new GrammarLexer(new ANTLRFileStream("sample.bc"));
+        GrammarLexer lexer = new GrammarLexer(new ANTLRFileStream("test.bc"));
         GrammarParser parser = new GrammarParser(new CommonTokenStream(lexer));
         
         RootASTNode tree = parser.allExpr().i;
