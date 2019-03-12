@@ -104,6 +104,16 @@ public interface GrammarListener extends ParseTreeListener {
 	 */
 	void exitWhileLoop(GrammarParser.WhileLoopContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link GrammarParser#bothExpr}.
+	 * @param ctx the parse tree
+	 */
+	void enterBothExpr(GrammarParser.BothExprContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GrammarParser#bothExpr}.
+	 * @param ctx the parse tree
+	 */
+	void exitBothExpr(GrammarParser.BothExprContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link GrammarParser#ifStatement}.
 	 * @param ctx the parse tree
 	 */

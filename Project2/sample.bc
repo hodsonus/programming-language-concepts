@@ -1,6 +1,66 @@
-while (1)
+## IF STATEMENTS
+if (1+2) 
 {
-2+2;
-}
     
-3+2;
+    2+6
+    
+    
+    
+    
+    2+2} else{
+
+
+
+
+        ;;
+
+
+
+        3+4;;
+        3+6;
+    }
+3+4
+
+if(1+1) {
+2+2}
+
+## WHILE LOOPS
+
+while (1) 
+{
+
+    ;;
+
+
+
+    2+3;
+    
+4+6
+};
+
+## FOR LOOPS
+
+for (2+2;2+2;2+2) 2+2;
+
+
+
+
+;;
+
+
+
+
+
+;
+
+
+## DEFINE FXN
+
+define john(a, b, c) {
+    d=a+b+c;
+    return d}
+
+define print_all(a,b,c) {
+    print a,b,c
+    return
+}

@@ -4,10 +4,32 @@ grammar Grammar;
 
     search through the document and complete all TODO that exist
 
-    implement the RETURN keyword ???????????
-      there is some other stuff that needs to be implemented like this im sure that I cannot think of off the top of my head
-      consult the docs to determine that I think
+    Every program MUST terminate in either a newline or a semicolon. This includes braces, they must be followed be one of these.
 
+
+    Do we need to implement these?
+        Statements
+            { statement_list }
+                This is the compound statement. It allows multiple statements to be grouped together for execution.
+            string
+                The string is printed to the output. Strings start with a double quote character and contain all characters until the next double quote character. All characters are taken literally, including any newline. No newline character is printed after the string.
+            break
+                This statement causes a forced exit of the most recent enclosing while statement or for statement.
+            continue
+                The continue statement (an extension) causes the most recent enclosing for statement to start the next iteration.
+            halt
+                The halt statement (an extension) is an executed statement that causes the bc processor to quit only when it is executed. For example, "if (0 == 1) halt" will not cause bc to terminate because the halt is not executed.
+        Pseudo Statements
+            quit
+                When the quit statement is read, the bc processor is terminated, regardless of where the quit statement is found. For example, "if (0 == 1) quit" will cause bc to terminate.
+    
+    Necessary to implement:
+        sqrt()
+        read()
+        s()
+        c()
+        l()
+        e()
 */
 
 @header {
@@ -72,38 +94,6 @@ printList returns [LinkedList<ValueNode> i]:
         $i = retList;
     };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ctrl returns [CtrlNode i]:
       ifs=ifStatement {
         $i = $ifs.i;
@@ -119,14 +109,13 @@ ctrl returns [CtrlNode i]:
     }
     | p=printExpr {
         $i = $p.i;
+    }
+    | 'return' n=num {
+        $i = new ReturnNode($n.i);
+    }
+    | 'return' {
+        $i = new ReturnNode(new ConstNode(0.0));
     };
-
-
-
-
-
-
-
 
 exprList returns [LinkedList<ExprNode> i]:
       e=expr (';'|NL)+ eL=exprList {
@@ -146,39 +135,36 @@ bracketedExprs returns [ArrayList<ExprNode> i]:
     };
 
 whileLoop returns [WhileNode i]:
-      'while(' n=num ')' ('\r'?'\n')? brackExpr=bracketedExprs {
-        $i = new WhileNode($n.i, new ArrayList($brackExpr.i));
+     'while' '(' n=num ')' NL? bExpr=bothExpr {
+        $i = new WhileNode($n.i, $bExpr.i);
+    };
+
+bothExpr returns [ArrayList<ExprNode> i]: 
+    brackExpr=bracketedExprs {
+        $i = new ArrayList($brackExpr.i);
     }
-    | 'while(' n=num ')' ('\r'?'\n')? e=expr {
+    | e=expr {
         ArrayList<ExprNode> lis = new ArrayList<ExprNode>();
         lis.add($e.i);
-        $i = new WhileNode($n.i, lis);
+        $i = lis;
     };
 
-
-
-
-// TODO, the spacing after the condition may not be correct ?? I think that with how we skip whitespace it is valid to have the parentheses right next to the statements, like 'if(1)2+3;'
-// This, of course, applies to the while loops, for loops, and defineFxns too
-// im not sure if we even care about this corner case, it doesnt seem THAT bad and it would result in a lot of reworking delimiters I think
 ifStatement returns [IfNode i]:
-      'if(' n=num ')' ifExpL=exprList 'else' elseExpL=exprList {
-        $i = new IfNode($n.i, new ArrayList($ifExpL.i), new ArrayList($elseExpL.i));
+      'if' '(' n=num ')' NL? ifExpL=bothExpr 'else' NL? elseExpL=bothExpr {
+        $i = new IfNode($n.i, $ifExpL.i, $elseExpL.i);
     }
-    | 'if(' n=num ')' ifExpL=exprList {
-        $i = new IfNode($n.i, new ArrayList($ifExpL.i), null);
+    | 'if' '(' n=num ')' NL? ifExpL=bothExpr {
+        $i = new IfNode($n.i, $ifExpL.i, null);
     };
 
-//TODO, should the below variable 'n1' be of type assign instead of num ? not really sure what to do with that
 forLoop returns [ForNode i]:
-      'for(' n1=num ';' n2=num ';' n3=num ')' expL=exprList {
-        $i = new ForNode($n1.i, $n2.i, $n3.i, new ArrayList($expL.i));
+      'for' '(' n1=num ';' n2=num ';' n3=num ')' NL? bExp=bothExpr {
+        $i = new ForNode($n1.i, $n2.i, $n3.i, $bExp.i);
     };
 
-// consult the documentation above exprList to understand why we use LinkedList instead of ArrayList or Stack here
 defineFxn returns [CtrlNode i]:
-      'define' ID'(' fAL=fxnArgList ')' expL=exprList {
-        $i = new DefineFxnNode($ID.getText(), new ArrayList($fAL.i), new ArrayList($expL.i));
+      'define' ID '(' fAL=fxnArgList ')' NL? bExp=bothExpr {
+        $i = new DefineFxnNode($ID.getText(), new ArrayList($fAL.i), $bExp.i);
     };
     
 fxnArgList returns [LinkedList<String> i]:
@@ -192,59 +178,6 @@ fxnArgList returns [LinkedList<String> i]:
         retList.push($ID.getText());
         $i = retList;
     };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 num returns [NumNode i]:
       f=fxn { $i = $f.i; }
@@ -327,7 +260,6 @@ uniLogic returns [UniNode i]:
     };
 
 BLOCK: '/*'.*?'*/' -> skip;
-// INLINE: '#'.*NL -> skip;
 INLINE: '#'~[\r\n]* -> skip;
 
 STRING: '"'.*?'"';
@@ -336,30 +268,3 @@ NUM: ([0-9]+|[0-9]*'.'[0-9]*);
 
 WS: [ \t]+ -> skip;
 NL: [\r]?[\n];
-
-/* TODO, this stuff still needs to get implemented somewhere
-expr returns [double i]:
-    | 'read()' {
-        //implement the print statement above
-        try { $i = SCNR.nextDouble(); }
-        catch (InputMismatchException e) {
-            System.out.println("Invalid paramater provided to read(), halting program...");
-            System.exit(0);
-        }
-        _print_enabled = true;
-    }
-    | 'sqrt(' e=expr ')' {
-        $i = Math.sqrt($e.i);
-        _print_enabled = true;
-    }
-    | fxn=('s('|'c('|'l('|'e(') e=expr ')' {
-        if($fxn.getText().equals("s("))
-            $i = Math.sin($e.i);
-        else if($fxn.getText().equals("c("))
-            $i = Math.cos($e.i);
-        else if($fxn.getText().equals("l("))
-            $i = Math.log($e.i); // log=ln in math library
-        else // $fxn.getText().equals("e(")
-            $i = Math.exp($e.i); // exp = e^x in math library
-        _print_enabled = true;
-    }; */
