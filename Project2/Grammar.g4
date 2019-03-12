@@ -19,9 +19,6 @@ grammar Grammar;
                 The continue statement (an extension) causes the most recent enclosing for statement to start the next iteration.
             halt
                 The halt statement (an extension) is an executed statement that causes the bc processor to quit only when it is executed. For example, "if (0 == 1) halt" will not cause bc to terminate because the halt is not executed.
-        Pseudo Statements
-            quit
-                When the quit statement is read, the bc processor is terminated, regardless of where the quit statement is found. For example, "if (0 == 1) quit" will cause bc to terminate.
     
     Necessary to implement:
         sqrt()
@@ -46,8 +43,8 @@ grammar Grammar;
 
 allExpr returns [RootASTNode i]: 
     (NL|';')*(topExpr (NL|';')+)*(EOF) {
-    $i = root;
-};
+        $i = root;
+    };
 
 topExpr:
     e=expr {
@@ -109,6 +106,9 @@ ctrl returns [CtrlNode i]:
     }
     | p=printExpr {
         $i = $p.i;
+    }
+    | 'quit' {
+        System.exit(0);
     }
     | 'return' n=num {
         $i = new ReturnNode($n.i);
