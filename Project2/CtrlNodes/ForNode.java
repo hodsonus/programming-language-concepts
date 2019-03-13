@@ -20,9 +20,13 @@ public class ForNode extends LoopNode {
 
     @Override
     public Double eval(ProgramState ps) throws CustomGrammarException {
+        Double curVal;
         for (assignment.eval(ps); condition.eval(ps)!=0; update.eval(ps)) {
             for (int i = 0; i < expressions.size(); i++) {
-                expressions.get(i).eval(ps);
+                curVal = expressions.get(i).eval(ps);
+                if (curVal != null) { 
+                    System.out.println(curVal);
+                }
             }
         }
         return null;

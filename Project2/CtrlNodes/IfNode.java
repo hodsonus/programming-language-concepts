@@ -1,6 +1,8 @@
 package CtrlNodes;
 
 import Core.ExprNode;
+import Core.ProgramState;
+import Exceptions.CustomGrammarException;
 import ValueNodes.NumNode;
 
 import java.util.ArrayList;
@@ -14,6 +16,28 @@ public class IfNode extends CtrlNode {
         this.condition = condition;
         this.ifExpressions = ifExpressions;
         this.elseExpressions = elseExpressions;
+    }
+
+    @Override
+    public Double eval(ProgramState ps) throws CustomGrammarException {
+        Double curVal;
+        if (condition.eval(ps)!=0) {
+            for (int i = 0; i < ifExpressions.size(); i++) {
+                curVal = ifExpressions.get(i).eval(ps);
+                if (curVal != null) {
+                    System.out.println(curVal);
+                }
+            }
+        }
+        else {
+            for (int i = 0; i < elseExpressions.size(); i++) {
+                curVal = elseExpressions.get(i).eval(ps);
+                if (curVal != null) {
+                    System.out.println(curVal);
+                }
+            }
+        }
+        return null;
     }
 
     @Override

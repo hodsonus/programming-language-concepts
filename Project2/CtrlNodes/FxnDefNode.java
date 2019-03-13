@@ -1,6 +1,8 @@
 package CtrlNodes;
 
 import Core.ExprNode;
+import Core.ProgramState;
+import Exceptions.CustomGrammarException;
 
 import java.util.ArrayList;
 
@@ -14,6 +16,12 @@ public class FxnDefNode extends CtrlNode {
         this.name = name;
         this.argNames = argNames;
         this.exprs = exprs;
+    }
+
+    @Override
+    public Double eval(ProgramState ps) throws CustomGrammarException {
+        //TODO
+        return null;
     }
 
     @Override

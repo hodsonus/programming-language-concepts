@@ -14,7 +14,13 @@ public class RootASTNode extends ASTNode {
 
     @Override
     public Double eval(ProgramState ps) throws CustomGrammarException {
-        for(ExprNode c : children) c.eval(ps);
+        Double currVal;
+        for(ExprNode c : children) {
+            currVal = c.eval(ps);
+            if (currVal != null) {
+                System.out.println(currVal);
+            }
+        }
         return null;
     }
 

@@ -141,7 +141,7 @@ ifStatement returns [IfNode i]:
         $i = new IfNode($n.i, $ifExpL.i, $elseExpL.i);
     }
     | 'if' '(' n=num ')' NL? ifExpL=bothExpr {
-        $i = new IfNode($n.i, $ifExpL.i, null);
+        $i = new IfNode($n.i, $ifExpL.i, new ArrayList<ExprNode>());
     };
 
 forLoop returns [ForNode i]:
