@@ -18,6 +18,7 @@ public class AssNode extends NumNode {
         double retVal = ps.getVar(id);
         double val = n.eval(ps);
         switch(op) {
+            case "=": return val;
             case "+=": return retVal+val;
             case "-=": return retVal-val;
             case "*=": return retVal*val;
@@ -32,6 +33,7 @@ public class AssNode extends NumNode {
     @Override
     public double eval(ProgramState ps) throws CustomGrammarException {
         double retVal = silentEval(ps);
+        ps.setVar(id, silentEval(ps));
         ps.setLast(silentEval(ps));
         return retVal;
     }

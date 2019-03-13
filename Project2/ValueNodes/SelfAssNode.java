@@ -14,10 +14,10 @@ public class SelfAssNode extends AssNode {
 
     private double silentEval(ProgramState ps) throws CustomGrammarException {
         double oldVal = ps.getVar(id), retVal = 0;
-        if(op.equals("+")) {
+        if(op.equals("++")) {
             if(isPrefix) retVal = oldVal+1;
             else retVal = oldVal;
-        } else if (op.equals("-")) {
+        } else if (op.equals("--")) {
             if(isPrefix) retVal = oldVal-1;
             else retVal = oldVal;
         } else {
@@ -30,13 +30,15 @@ public class SelfAssNode extends AssNode {
     public double eval(ProgramState ps) throws CustomGrammarException {
         // redundancy bc side effect is different than return value
         double oldVal = ps.getVar(id), retVal = 0;
-        if(op.equals("+")) {
+        if(op.equals("++")) {
             if(isPrefix) retVal = oldVal+1;
             else retVal = oldVal;
+            ps.setVar(id, oldVal+1);
             ps.setLast(oldVal+1);
-        } else if (op.equals("-")) {
+        } else if (op.equals("--")) {
             if(isPrefix) retVal = oldVal-1;
             else retVal = oldVal;
+            ps.setVar(id, oldVal-1);
             ps.setLast(oldVal-1);
         } else {
             throw new UnknownOpException(op);

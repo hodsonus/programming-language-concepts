@@ -103,18 +103,19 @@ public class ProgramState {
         Double retVal = null;
         if(fxnDef == null) {
             retVal = tryStdLib(fxnName, args);
+        } else {
+            if(args.size() != fxnDef.argNames.size()) {
+                throw new InvalidNumArgsException(
+                    fxnName + " found " + args.size() + " expected " + fxnDef.argNames.size());
+            }
+            localVars.push(new HashMap<String, Double>());
+            for(int i = 0; i < args.size(); i++) {
+                // unpack local args
+                setVar(fxnDef.argNames.get(i), args.get(i));
+            }
+            retVal = fxnDef.eval(this); // recursion
+            localVars.pop();
         }
-        if(args.size() != fxnDef.argNames.size()) {
-            throw new InvalidNumArgsException(
-                fxnName + " found " + args.size() + " expected " + fxnDef.argNames.size());
-        }
-        localVars.push(new HashMap<String, Double>());
-        for(int i = 0; i < args.size(); i++) {
-            // unpack local args
-            setVar(fxnDef.argNames.get(i), args.get(i));
-        }
-        retVal = fxnDef.eval(this); // recursion
-        localVars.pop();
         return retVal;
     }
 
