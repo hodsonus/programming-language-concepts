@@ -26,8 +26,8 @@ public class FxnCallNode extends NumNode {
         for(NumNode nn : args) {
             evaluated.add(nn.eval(ps));
         }
-        ps.callFxn(fxnName, evaluated);
-        return new Double(0); // TODO return function value?
+        Double val = ps.callFxn(fxnName, evaluated);
+        return val;
     }
 
     @Override

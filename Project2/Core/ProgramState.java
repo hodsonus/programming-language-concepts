@@ -113,7 +113,8 @@ public class ProgramState {
                 // unpack local args
                 setVar(fxnDef.argNames.get(i), args.get(i));
             }
-            retVal = fxnDef.eval(this); // recursion
+            fxnDef.eval(this); // recursion?
+            retVal = null;
             localVars.pop();
         }
         return retVal;

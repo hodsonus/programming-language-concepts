@@ -20,8 +20,14 @@ public class FxnDefNode extends CtrlNode {
 
     @Override
     public Double eval(ProgramState ps) throws CustomGrammarException {
-        //TODO
-        return null;
+        Double curVal;
+        for (int i = 0; i < exprs.size(); i++) {
+            curVal = exprs.get(i).eval(ps);
+            if (curVal != null) {
+                System.out.println(curVal);
+            }
+        }
+        return null; ////// TODO, HOW ARE WE GOING TO RETURN THE RET VALUE ? KEEP A RET VALUE ON THE LOCAL SCOPE ?
     }
 
     @Override

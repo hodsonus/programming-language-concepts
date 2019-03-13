@@ -20,7 +20,6 @@ public class PrintNode extends CtrlNode {
             vn.print(ps);
         }
         if(lis.get(lis.size()-1) instanceof NumNode) {
-            // TODO test this update "last"
             ps.setLast(lis.get(lis.size()-1).eval(ps));
         }
         System.out.println();

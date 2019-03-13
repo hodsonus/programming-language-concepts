@@ -339,6 +339,7 @@ fxn returns [FxnCallNode i]:
          ArrayList<NumNode> solvedList = new ArrayList($numList.i);
          $i = new FxnCallNode($ID.getText(), solvedList);
     };
+
 numArgList returns [LinkedList<NumNode> i]:
       n=num ',' nl=numArgList {
         LinkedList<NumNode> partSolvedList = $nl.i;
