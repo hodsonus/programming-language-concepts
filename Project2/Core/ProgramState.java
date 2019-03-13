@@ -14,10 +14,12 @@ public class ProgramState {
     private HashMap<String, Double> globalVars;
     private Stack<HashMap<String, Double>> localVars;
     private HashMap<String, FxnDefNode> globalFxns; // only global
-    private final ArrayList<String> stdLib = new ArrayList<String>() {{
-        add("s"); add("c"); add("l"); add("e");
-        add("sqrt"); add("read");
-    }};
+
+    public ProgramState() {
+        this.globalVars = new HashMap<String, Double>();
+        this.localVars = new Stack<HashMap<String, Double>>();
+        this.globalFxns = new HashMap<String, FxnDefNode>();
+    }
 
     private boolean isInGlobalScope() {
         // size: 0 = global, 1 = fxn call, 2 = nested call, etc.
@@ -34,15 +36,15 @@ public class ProgramState {
     }
 
     public void setLast(double varValue) {
-        setLast(varValue);
+        setVar("last", varValue);
     }
 
-    public void setFxn(String fxnName, FxnDefNode fnxDef) {
+    public void setFxn(String fxnName, FxnDefNode fnxDef) throws CustomGrammarException {
         if(isInGlobalScope()) {
             // name collisions with variables allowed
             globalFxns.put(fxnName, fnxDef);
         } else {
-            throw new NestedFxnDefException();
+            throw new NestedFxnDefException(fxnName);
         }
     }
 
@@ -63,16 +65,22 @@ public class ProgramState {
         return retVal;
     }
 
-    private Double tryStdLib(String fxnName, ArrayList<Double> args) throws GrammarException {
+    private Double tryStdLib(String fxnName, ArrayList<Double> args) throws CustomGrammarException {
+        ArrayList<String> stdLib = new ArrayList<String>() {
+            private static final long serialVersionUID = 1L;
+            { add("s"); add("c"); add("l"); add("e"); add("sqrt"); add("read");}};
         // throw for fxn not found first
         if(!stdLib.contains(fxnName)) {
-            throw new FxnDefNotFoundException();
+            throw new FxnDefNotFoundException(fxnName);
         }
         // then throw for invalid args
         boolean valid = (args.size() == 0 && fxnName.equals("read")) ||
             (args.size() == 1 && !fxnName.equals("read"));
         if(!valid) {
-            throw new InvalidNumArgsException();
+            if(fxnName.equals("read"))
+                throw new InvalidNumArgsException(fxnName + " found " + args.size() + " expected 0");
+            else
+                throw new InvalidNumArgsException(fxnName + " found " + args.size() + " expected 1");
         }
         switch(fxnName)  {
             case "s": return Math.sin(args.get(0));
@@ -86,20 +94,21 @@ public class ProgramState {
                 sc.close();
                 return retVal;
             // redundant throw not found for default
-            default: throw new FxnDefNotFoundException();
+            default: throw new FxnDefNotFoundException(fxnName);
         }
     }
 
-    public double callFxn(String fxnName, ArrayList<Double> args) throws GrammarException {
+    public double callFxn(String fxnName, ArrayList<Double> args) throws CustomGrammarException {
         FxnDefNode fxnDef = globalFxns.get(fxnName);
         Double retVal = null;
         if(fxnDef == null) {
             retVal = tryStdLib(fxnName, args);
         }
         if(args.size() != fxnDef.argNames.size()) {
-            throw new InvalidNumArgsException();
+            throw new InvalidNumArgsException(
+                fxnName + " found " + args.size() + " expected " + fxnDef.argNames.size());
         }
-        localVars.push(new HashMap<String, DefineFxnNode>());
+        localVars.push(new HashMap<String, Double>());
         for(int i = 0; i < args.size(); i++) {
             // unpack local args
             setVar(fxnDef.argNames.get(i), args.get(i));

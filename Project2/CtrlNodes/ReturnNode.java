@@ -1,6 +1,8 @@
 package CtrlNodes;
 
 import ValueNodes.NumNode;
+import Core.ProgramState;
+import Exceptions.*;
 
 public class ReturnNode extends CtrlNode {
 
@@ -10,7 +12,13 @@ public class ReturnNode extends CtrlNode {
         this.val = val;
     }
 
-    @Override 
+    @Override
+    public double eval(ProgramState ps) throws CustomGrammarException {
+        ps.setLast(val.eval(ps));
+        return val.eval(ps);
+    }
+
+    @Override
     public String toString() {
         return "return " + val.toString();
     }

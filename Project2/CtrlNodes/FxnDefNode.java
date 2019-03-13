@@ -4,16 +4,16 @@ import Core.ExprNode;
 
 import java.util.ArrayList;
 
-public class DefineFxnNode extends CtrlNode {
+public class FxnDefNode extends CtrlNode {
 
     public String name;
-    public ArrayList<String> args;
-    public ArrayList<ExprNode> expressions;
+    public ArrayList<String> argNames;
+    public ArrayList<ExprNode> exprs;
 
-    public DefineFxnNode(String name, ArrayList<String> args, ArrayList<ExprNode> expressions) {
+    public FxnDefNode(String name, ArrayList<String> argNames, ArrayList<ExprNode> exprs) {
         this.name = name;
-        this.args = args;
-        this.expressions = expressions;
+        this.argNames = argNames;
+        this.exprs = exprs;
     }
 
     @Override
@@ -22,13 +22,13 @@ public class DefineFxnNode extends CtrlNode {
         rep.append("define ");
         rep.append(name);
         rep.append("(");
-        for (String arg : args) {
+        for (String arg : argNames) {
             rep.append(arg);
             rep.append(", ");
         }
         rep.delete(rep.length()-2, rep.length()); //remove the last ", " from the representation
         rep.append(") {\n");
-        for (ExprNode expr : expressions) {
+        for (ExprNode expr : exprs) {
             rep.append("\t");
             rep.append(expr.toString());
             rep.append("\n");

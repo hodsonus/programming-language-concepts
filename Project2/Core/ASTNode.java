@@ -1,5 +1,11 @@
 package Core;
 
+import Exceptions.*;
+
 public abstract class ASTNode {
-    // public abstract void evaluate();
+
+    public double eval(ProgramState ps) throws CustomGrammarException {
+        return 0;
+    }
+
 }

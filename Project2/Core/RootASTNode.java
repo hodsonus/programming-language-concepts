@@ -2,6 +2,7 @@ package Core;
 
 import java.util.List;
 import java.util.ArrayList;
+import Exceptions.*;
 
 public class RootASTNode extends ASTNode {
 
@@ -9,6 +10,12 @@ public class RootASTNode extends ASTNode {
 
     public RootASTNode() {
         children = new ArrayList<ExprNode>();
+    }
+
+    @Override
+    public double eval(ProgramState ps) throws CustomGrammarException {
+        for(ExprNode c : children) c.eval(ps);
+        return 0;
     }
 
     @Override

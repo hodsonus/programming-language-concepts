@@ -2,6 +2,9 @@ package CtrlNodes;
 
 import java.util.ArrayList;
 import ValueNodes.ValueNode;
+import ValueNodes.NumNode;
+import Core.ProgramState;
+import Exceptions.*;
 
 public class PrintNode extends CtrlNode {
 
@@ -9,6 +12,18 @@ public class PrintNode extends CtrlNode {
 
     public PrintNode(ArrayList<ValueNode> lis) {
         this.lis = lis;
+    }
+
+    @Override
+    public double eval(ProgramState ps) throws CustomGrammarException {
+        for(ValueNode vn : lis) {
+            vn.print(ps);
+        }
+        if(lis.get(lis.size()-1) instanceof NumNode) {
+            // TODO test this update "last"
+            ps.setLast(lis.get(lis.size()-1).eval(ps));
+        }
+        return 0;
     }
 
     @Override

@@ -1,12 +1,7 @@
 grammar Grammar;
 
 /* TODO
-
-    search through the document and complete all TODO that exist
-
     Every program MUST terminate in either a newline or a semicolon. This includes braces, they must be followed be one of these.
-
-
     Do we need to implement these?
         Statements
             { statement_list }
@@ -19,14 +14,6 @@ grammar Grammar;
                 The continue statement (an extension) causes the most recent enclosing for statement to start the next iteration.
             halt
                 The halt statement (an extension) is an executed statement that causes the bc processor to quit only when it is executed. For example, "if (0 == 1) halt" will not cause bc to terminate because the halt is not executed.
-    
-    Necessary to implement:
-        sqrt()
-        read()
-        s()
-        c()
-        l()
-        e()
 */
 
 @header {
@@ -41,7 +28,7 @@ grammar Grammar;
     RootASTNode root = new RootASTNode();
 }
 
-allExpr returns [RootASTNode i]: 
+allExpr returns [RootASTNode i]:
     (NL|';')*(topExpr (NL|';')+)*(EOF) {
         $i = root;
     };
@@ -123,7 +110,7 @@ exprList returns [LinkedList<ExprNode> i]:
         partSolvedList.push($e.i);
         $i = partSolvedList;
     }
-    | e=expr { 
+    | e=expr {
         LinkedList<ExprNode> retList = new LinkedList<ExprNode>();
         retList.push($e.i);
         $i = retList;
@@ -139,7 +126,7 @@ whileLoop returns [WhileNode i]:
         $i = new WhileNode($n.i, $bExpr.i);
     };
 
-bothExpr returns [ArrayList<ExprNode> i]: 
+bothExpr returns [ArrayList<ExprNode> i]:
     brackExpr=bracketedExprs {
         $i = new ArrayList($brackExpr.i);
     }
@@ -164,9 +151,9 @@ forLoop returns [ForNode i]:
 
 defineFxn returns [CtrlNode i]:
       'define' ID '(' fAL=fxnArgList ')' NL? bExp=bothExpr {
-        $i = new DefineFxnNode($ID.getText(), new ArrayList($fAL.i), $bExp.i);
+        $i = new FxnDefNode($ID.getText(), new ArrayList($fAL.i), $bExp.i);
     };
-    
+
 fxnArgList returns [LinkedList<String> i]:
       ID ',' fAL=fxnArgList {
         LinkedList<String> partSolvedList = $fAL.i;
@@ -216,10 +203,10 @@ num returns [NumNode i]:
         $i = new ConstNode(  Double.parseDouble($NUM.getText())  );
     };
 
-fxn returns [FxnNode i]:
+fxn returns [FxnCallNode i]:
       ID '(' numList=numArgList ')' {
          ArrayList<NumNode> solvedList = new ArrayList($numList.i);
-         $i = new FxnNode($ID.getText(), solvedList);
+         $i = new FxnCallNode($ID.getText(), solvedList);
     };
 numArgList returns [LinkedList<NumNode> i]:
       n=num ',' nl=numArgList {
