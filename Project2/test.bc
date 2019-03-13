@@ -161,10 +161,10 @@ print "test: 1||1&&0", " exp: 1", " obs: ", 1||1&&0
 print "test: 0&&1||1", " exp: 1", " obs: ", 0&&1||1
 
 ###### 5. special exps ######
-print "please enter a number to test read(): "
-print "test: x=read()", " exp: your user input", " obs: ", x=read()
-print "test: x=2", " exp: 2", " obs: ", x=2
-print "test: sqrt(x)", " exp: 1.414...", " obs: ", sqrt(x)
+#print "please enter a number to test read(): "
+#print "test: x=read()", " exp: your user input", " obs: ", x=read()
+#print "test: x=2", " exp: 2", " obs: ", x=2
+#print "test: sqrt(x)", " exp: 1.414...", " obs: ", sqrt(x)
 
 ###### 6. statements ######
 # this entire test file

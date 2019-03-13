@@ -170,6 +170,16 @@ num returns [NumNode i]:
       f=fxn { $i = $f.i; }
     | p=parens { $i = $p.i; }
     | uA=uniArith { $i = $uA.i; }
+    | op='-' n=num {
+        NumNode numeric = $n.i;
+        if (numeric instanceof ConstNode) {
+            ConstNode constNumeric = (ConstNode)numeric;
+            $i = new ConstNode(-1*constNumeric.val);
+        }
+        else {
+            $i = new UniNode($n.i, $op.getText());
+        }
+    }
     /* binary arithmetic */
     | nl=num op1='^' nm=num op2='^' nr=num {
         NumNode left = $nl.i;
@@ -274,7 +284,16 @@ num returns [NumNode i]:
             $i = new BinNode($nl.i, op, $nr.i);
         }
     }
-    | uL=uniLogic { $i = $uL.i; }
+    | op='!' n=num {
+        NumNode numeric = $n.i;
+        if (numeric instanceof ConstNode) {
+            ConstNode constNumeric = (ConstNode)numeric;
+            $i = new ConstNode(   (constNumeric.val != 0) ? 0:1   );
+        }
+        else {
+            $i = new UniNode($n.i, $op.getText());
+        }
+    }
     /* binary logic */
     | nl=num op='&&' nr=num {
         NumNode left = $nl.i;
@@ -337,39 +356,17 @@ parens returns [NumNode i]:
         $i = $n.i;
     };
 
-uniArith returns [NumNode i]:
+uniArith returns [SelfAssNode i]:
       op=('++'|'--') ID {
         $i = new SelfAssNode($ID.getText(), $op.getText(), true);
     }
     | ID op=('++'|'--') {
         $i = new SelfAssNode($ID.getText(), $op.getText(), false);
-    }
-    | op='-' n=num {
-        NumNode numeric = $n.i;
-        if (numeric instanceof ConstNode) {
-            ConstNode constNumeric = (ConstNode)numeric;
-            $i = new ConstNode(-1*constNumeric.val);
-        }
-        else {
-            $i = new UniNode($n.i, $op.getText());
-        }
     };
 
 assign returns [AssNode i]:
       ID op=('='|'+='|'-='|'*='|'/=') n=num {
         $i = new AssNode($ID.getText(), $op.getText(), $n.i);
-    };
-
-uniLogic returns [NumNode i]:
-      op='!' n=num {
-        NumNode numeric = $n.i;
-        if (numeric instanceof ConstNode) {
-            ConstNode constNumeric = (ConstNode)numeric;
-            $i = new ConstNode(   (constNumeric.val != 0) ? 0:1   );
-        }
-        else {
-            $i = new UniNode($n.i, $op.getText());
-        }
     };
 
 BLOCK: '/*'.*?'*/' -> skip;
