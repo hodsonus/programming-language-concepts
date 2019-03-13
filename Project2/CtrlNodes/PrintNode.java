@@ -15,7 +15,7 @@ public class PrintNode extends CtrlNode {
     }
 
     @Override
-    public double eval(ProgramState ps) throws CustomGrammarException {
+    public Double eval(ProgramState ps) throws CustomGrammarException {
         for(ValueNode vn : lis) {
             vn.print(ps);
         }
@@ -24,7 +24,7 @@ public class PrintNode extends CtrlNode {
             ps.setLast(lis.get(lis.size()-1).eval(ps));
         }
         System.out.println();
-        return 0;
+        return null;
     }
 
     @Override

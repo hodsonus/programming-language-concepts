@@ -20,14 +20,14 @@ public class FxnCallNode extends NumNode {
     }
 
     @Override
-    public double eval(ProgramState ps) throws CustomGrammarException {
+    public Double eval(ProgramState ps) throws CustomGrammarException {
         // TODO figure out how to get last in higher level function call
         ArrayList<Double> evaluated = new ArrayList<Double>();
         for(NumNode nn : args) {
             evaluated.add(nn.eval(ps));
         }
         ps.callFxn(fxnName, evaluated);
-        return 0; // TODO return function value?
+        return new Double(0); // TODO return function value?
     }
 
     @Override

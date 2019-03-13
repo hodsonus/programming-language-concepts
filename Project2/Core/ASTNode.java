@@ -4,8 +4,8 @@ import Exceptions.*;
 
 public abstract class ASTNode {
 
-    public double eval(ProgramState ps) throws CustomGrammarException {
-        return 0;
+    public Double eval(ProgramState ps) throws CustomGrammarException {
+        return null;
     }
 
 }

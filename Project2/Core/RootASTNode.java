@@ -13,9 +13,9 @@ public class RootASTNode extends ASTNode {
     }
 
     @Override
-    public double eval(ProgramState ps) throws CustomGrammarException {
+    public Double eval(ProgramState ps) throws CustomGrammarException {
         for(ExprNode c : children) c.eval(ps);
-        return 0;
+        return null;
     }
 
     @Override

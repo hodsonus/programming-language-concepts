@@ -27,7 +27,7 @@ public class SelfAssNode extends AssNode {
     }
 
     @Override
-    public double eval(ProgramState ps) throws CustomGrammarException {
+    public Double eval(ProgramState ps) throws CustomGrammarException {
         // redundancy bc side effect is different than return value
         double oldVal = ps.getVar(id), retVal = 0;
         if(op.equals("++")) {

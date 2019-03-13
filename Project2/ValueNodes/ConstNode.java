@@ -11,7 +11,7 @@ public class ConstNode extends NumNode {
     }
 
     @Override
-    public double eval(ProgramState ps) throws CustomGrammarException {
+    public Double eval(ProgramState ps) throws CustomGrammarException {
         ps.setLast(val);
         return val;
     }

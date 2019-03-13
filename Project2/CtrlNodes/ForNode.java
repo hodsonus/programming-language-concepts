@@ -1,6 +1,8 @@
 package CtrlNodes;
 
 import Core.ExprNode;
+import Core.ProgramState;
+import Exceptions.CustomGrammarException;
 import ValueNodes.NumNode;
 
 import java.util.ArrayList;
@@ -14,6 +16,16 @@ public class ForNode extends LoopNode {
         this.condition = condition;
         this.update = update;
         this.expressions = expressions;
+    }
+
+    @Override
+    public Double eval(ProgramState ps) throws CustomGrammarException {
+        for (assignment.eval(ps); condition.eval(ps)!=0; update.eval(ps)) {
+            for (int i = 0; i < expressions.size(); i++) {
+                expressions.get(i).eval(ps);
+            }
+        }
+        return null;
     }
 
     @Override

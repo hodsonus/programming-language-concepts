@@ -31,7 +31,7 @@ public class AssNode extends NumNode {
     }
 
     @Override
-    public double eval(ProgramState ps) throws CustomGrammarException {
+    public Double eval(ProgramState ps) throws CustomGrammarException {
         double retVal = silentEval(ps);
         ps.setVar(id, silentEval(ps));
         ps.setLast(silentEval(ps));

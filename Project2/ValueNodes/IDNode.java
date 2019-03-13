@@ -12,7 +12,7 @@ public class IDNode extends NumNode {
     }
 
     @Override
-    public double eval(ProgramState ps) throws CustomGrammarException {
+    public Double eval(ProgramState ps) throws CustomGrammarException {
         double retVal = ps.getVar(id);
         ps.setLast(retVal);
         return retVal;

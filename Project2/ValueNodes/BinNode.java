@@ -36,7 +36,7 @@ public class BinNode extends NumNode {
     }
 
     @Override
-    public double eval(ProgramState ps) throws CustomGrammarException {
+    public Double eval(ProgramState ps) throws CustomGrammarException {
         double retVal = silentEval(ps);
         ps.setLast(retVal);
         return retVal;

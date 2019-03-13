@@ -14,11 +14,11 @@ public class UniNode extends NumNode {
     }
 
     @Override
-    public double eval(ProgramState ps) throws CustomGrammarException {
+    public Double eval(ProgramState ps) throws CustomGrammarException {
         double retVal = n.eval(ps);
         switch(op)  {
             case "-": return -retVal;
-            case "!": return !(retVal!=0)?1:0;
+            case "!": return new Double(!(retVal!=0)?1:0);
             default: throw new UnknownOpException(op);
         }
     }
