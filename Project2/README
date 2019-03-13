@@ -13,6 +13,7 @@ Functionality:
 
 Exceptional Behavior:
 - We dont have "assignment comparison assignment" in our for loops, rather, "numeric numeric numeric"
+- Constant value propagation is implemented.
 
 - Print function was implemented using Java println() rather than print() by design.
 - Modulus was implemented simply using the integer `%` operator without scaling for floats/doubles.

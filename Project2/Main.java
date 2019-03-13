@@ -11,6 +11,6 @@ public class Main {
         GrammarParser parser = new GrammarParser(new CommonTokenStream(lexer));
         RootASTNode tree = parser.allExpr().i;
         System.out.println(tree);
-        System.out.println(tree.eval(new ProgramState()));
+        // System.out.println(tree.eval(new ProgramState()));
     }
 }

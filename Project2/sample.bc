@@ -64,3 +64,19 @@ define print_all(a,b,c) {
     print a,b,c
     return
 }
+
+## CONSTANT VALUE PROPAGATION
+
+2^2
+
+2^2^3
+
+(2*4*5/4)%4
+
+2+3-4+7
+
+2*(-3)&&0
+
+!(0||0)
+
+(3 <= 3) != 1

@@ -172,29 +172,137 @@ num returns [NumNode i]:
     | uA=uniArith { $i = $uA.i; }
     /* binary arithmetic */
     | nl=num op1='^' nm=num op2='^' nr=num {
-        $i = new BinNode($nl.i, $op1.getText(), new BinNode($nm.i, $op2.getText(), $nr.i));
+        NumNode left = $nl.i;
+        NumNode mid = $nm.i;
+        NumNode right = $nr.i;
+        if (left instanceof ConstNode && mid instanceof ConstNode && right instanceof ConstNode) {
+            ConstNode constLeft  = (ConstNode)left;
+            ConstNode constMid   = (ConstNode)mid;
+            ConstNode constRight = (ConstNode)right;
+            $i = new ConstNode(Math.pow(constLeft.val, Math.pow(constMid.val, constRight.val)));
+        }
+        else {
+            $i = new BinNode($nl.i, $op1.getText(), new BinNode($nm.i, $op2.getText(), $nr.i));
+        }
     }
     | nl=num op='^' nr=num {
-        $i = new BinNode($nl.i, $op.getText(), $nr.i);
+        NumNode left = $nl.i;
+        NumNode right = $nr.i;
+        if (left instanceof ConstNode && right instanceof ConstNode) {
+            ConstNode constLeft = (ConstNode)left;
+            ConstNode constRight = (ConstNode)right;
+            $i = new ConstNode(Math.pow(constLeft.val, constRight.val));
+        }
+        else {
+            $i = new BinNode(left, $op.getText(), right);
+        }
     }
     | nl=num op=('*'|'/'|'%') nr=num {
-        $i = new BinNode($nl.i, $op.getText(), $nr.i);
+        NumNode left = $nl.i;
+        NumNode right = $nr.i;
+        String op = $op.getText();
+        if (left instanceof ConstNode && right instanceof ConstNode) {
+            ConstNode constLeft = (ConstNode)left;
+            ConstNode constRight = (ConstNode)right;
+            Double val;
+            if (  op.equals("*")  ) {
+                val = constLeft.val*constRight.val;
+            }
+            else if (  op.equals("/")  ) {
+                val = constLeft.val/constRight.val;
+            }
+            else  { //op.equals("%")
+                val = constLeft.val%constRight.val;
+            }
+            $i = new ConstNode(val);
+        }
+        else {
+            $i = new BinNode($nl.i, op, $nr.i);
+        }
     }
     | nl=num op=('+'|'-') nr=num {
-        $i = new BinNode($nl.i, $op.getText(), $nr.i);
+        NumNode left = $nl.i;
+        NumNode right = $nr.i;
+        String op = $op.getText();
+        if (left instanceof ConstNode && right instanceof ConstNode) {
+            ConstNode constLeft = (ConstNode)left;
+            ConstNode constRight = (ConstNode)right;
+            Double val;
+            if (  op.equals("+")  ) {
+                val = constLeft.val+constRight.val;
+            }
+            else  { //op.equals("-")
+                val = constLeft.val-constRight.val;
+            }
+            $i = new ConstNode(val);
+        }
+        else {
+            $i = new BinNode($nl.i, op, $nr.i);
+        }
     }
     | a=assign { $i = $a.i; }
     /* binary relations */
     | nl=num op=('<=' |'<'|'>='|'>'|'=='|'!=') nr=num {
-        $i = new BinNode($nl.i, $op.getText(), $nr.i);
+        NumNode left = $nl.i;
+        NumNode right = $nr.i;
+        String op = $op.getText();
+        if (left instanceof ConstNode && right instanceof ConstNode) {
+            ConstNode constLeft = (ConstNode)left;
+            ConstNode constRight = (ConstNode)right;
+            int val;
+            if (  op.equals("<=")  ) {
+                val = (constLeft.val <= constRight.val) ? 1:0;
+            }
+            else if (  op.equals("<")  ) {
+                val = (constLeft.val < constRight.val) ? 1:0;
+            }
+            else if (  op.equals(">=")  ) {
+                val = (constLeft.val >= constRight.val) ? 1:0;
+            }
+            else if (  op.equals(">")  ) {
+                val = (constLeft.val > constRight.val) ? 1:0;
+            }
+            else if (  op.equals("==")  ) {
+                val = (constLeft.val == constRight.val) ? 1:0;
+            }
+            else  { //op.equals("!=")
+                val = (constLeft.val != constRight.val) ? 1:0;
+            }
+            $i = new ConstNode(val);
+        }
+        else {
+            $i = new BinNode($nl.i, op, $nr.i);
+        }
     }
     | uL=uniLogic { $i = $uL.i; }
     /* binary logic */
     | nl=num op='&&' nr=num {
-        $i = new BinNode($nl.i, $op.getText(), $nr.i);
+        NumNode left = $nl.i;
+        NumNode right = $nr.i;
+        String op = $op.getText();
+        if (left instanceof ConstNode && right instanceof ConstNode) {
+            ConstNode constLeft = (ConstNode)left;
+            ConstNode constRight = (ConstNode)right;
+            
+            $i = new ConstNode(   ((constLeft.val != 0) && (constRight.val != 0)) ? 1:0   );
+        }
+        else {
+            $i = new BinNode($nl.i, op, $nr.i);
+        }
     }
     | nl=num op='||' nr=num {
-        $i = new BinNode($nl.i, $op.getText(), $nr.i);
+        NumNode left = $nl.i;
+        NumNode right = $nr.i;
+        String op = $op.getText();
+        if (left instanceof ConstNode && right instanceof ConstNode) {
+            ConstNode constLeft = (ConstNode)left;
+            ConstNode constRight = (ConstNode)right;
+            
+            $i = new ConstNode(   ((constLeft.val != 0) || (constRight.val != 0)) ? 1:0   );
+        }
+        else {
+            $i = new BinNode($nl.i, op, $nr.i);
+        }
     }
     | ID {
         $i = new IDNode(  $ID.getText()  );
@@ -233,7 +341,14 @@ uniArith returns [NumNode i]:
         $i = new SelfAssNode($ID.getText(), $op.getText(), false);
     }
     | op='-' n=num {
-        $i = new UniNode($n.i, $op.getText());
+        NumNode numeric = $n.i;
+        if (numeric instanceof ConstNode) {
+            ConstNode constNumeric = (ConstNode)numeric;
+            $i = new ConstNode(-1*constNumeric.val);
+        }
+        else {
+            $i = new UniNode($n.i, $op.getText());
+        }
     };
 
 assign returns [AssNode i]:
@@ -241,9 +356,16 @@ assign returns [AssNode i]:
         $i = new AssNode($ID.getText(), $op.getText(), $n.i);
     };
 
-uniLogic returns [UniNode i]:
+uniLogic returns [NumNode i]:
       op='!' n=num {
-        $i = new UniNode($n.i, $op.getText());
+        NumNode numeric = $n.i;
+        if (numeric instanceof ConstNode) {
+            ConstNode constNumeric = (ConstNode)numeric;
+            $i = new ConstNode(   (constNumeric.val != 0) ? 0:1   );
+        }
+        else {
+            $i = new UniNode($n.i, $op.getText());
+        }
     };
 
 BLOCK: '/*'.*?'*/' -> skip;
