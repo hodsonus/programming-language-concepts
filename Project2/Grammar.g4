@@ -312,7 +312,11 @@ num returns [NumNode i]:
     };
 
 fxn returns [FxnCallNode i]:
-      ID '(' numList=numArgList ')' {
+      ID '(' ')' {
+         ArrayList<NumNode> emptyArgsList = new ArrayList<NumNode>();
+         $i = new FxnCallNode($ID.getText(), emptyArgsList);
+    }
+    | ID '(' numList=numArgList ')' {
          ArrayList<NumNode> solvedList = new ArrayList($numList.i);
          $i = new FxnCallNode($ID.getText(), solvedList);
     };
