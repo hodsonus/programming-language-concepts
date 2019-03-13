@@ -1,3 +1,9 @@
 */.antlr
+*/.vscode
+*/Grammar*.java
 Project2/bin/*
 *.class
+*.tokens
+*.interp
+*/*.tokens
+*/*.interp
