@@ -10,9 +10,10 @@ public class Main {
         GrammarLexer lexer = new GrammarLexer(new ANTLRFileStream("bugs.bc"));
         GrammarParser parser = new GrammarParser(new CommonTokenStream(lexer));
         RootASTNode tree = parser.allExpr().i;
-        System.out.println("================================================================================");
+        System.out.println("===================================PARSE TREE===================================");
         System.out.println(tree);
         System.out.println("================================================================================");
+        System.out.println("=================================PROGRAM OUTPUT=================================");
         tree.eval(new ProgramState());
         System.out.println("================================================================================");
     }
