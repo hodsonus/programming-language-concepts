@@ -38,7 +38,7 @@ public class FxnCallNode extends NumNode {
             rep.append(arg.toString());
             rep.append(", ");
         }
-        rep.delete(rep.length()-2, rep.length()); // remove trailing ", "
+        if (args.size() != 0) rep.delete(rep.length()-2, rep.length()); // remove trailing ", "
         rep.append(")");
         return rep.toString();
     }

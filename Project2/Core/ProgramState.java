@@ -4,7 +4,7 @@ import Exceptions.*;
 import java.util.Stack;
 import java.util.HashMap;
 import java.util.ArrayList;
-import CtrlNodes.FxnDefNode;
+import CtrlNodes.FxnRootNode;
 import java.lang.Math;
 import java.util.Scanner;
 import java.lang.Double;
@@ -13,12 +13,12 @@ public class ProgramState {
 
     private HashMap<String, Double> globalVars;
     private Stack<HashMap<String, Double>> localVars;
-    private HashMap<String, FxnDefNode> globalFxns; // only global
+    private HashMap<String, FxnRootNode> globalFxns; // only global
 
     public ProgramState() {
         this.globalVars = new HashMap<String, Double>();
         this.localVars = new Stack<HashMap<String, Double>>();
-        this.globalFxns = new HashMap<String, FxnDefNode>();
+        this.globalFxns = new HashMap<String, FxnRootNode>();
     }
 
     private boolean isInGlobalScope() {
@@ -39,10 +39,9 @@ public class ProgramState {
         setVar("last", varValue);
     }
 
-    public void setFxn(String fxnName, FxnDefNode fnxDef) throws CustomGrammarException {
+    public void setFxn(String fxnName, FxnRootNode fxn) throws CustomGrammarException {
         if(isInGlobalScope()) {
-            // name collisions with variables allowed
-            globalFxns.put(fxnName, fnxDef);
+            globalFxns.put(fxnName, fxn);
         } else {
             throw new NestedFxnDefException(fxnName);
         }
@@ -99,24 +98,23 @@ public class ProgramState {
     }
 
     public double callFxn(String fxnName, ArrayList<Double> args) throws CustomGrammarException {
-        FxnDefNode fxnDef = globalFxns.get(fxnName);
+        FxnRootNode fxnRoot = globalFxns.get(fxnName);
         Double retVal = null;
-        if(fxnDef == null) {
+        if(fxnRoot == null) {
             retVal = tryStdLib(fxnName, args);
         } else {
-            if(args.size() != fxnDef.argNames.size()) {
+            if(args.size() != fxnRoot.argNames.size()) {
                 throw new InvalidNumArgsException(
-                    fxnName + " found " + args.size() + " expected " + fxnDef.argNames.size());
+                    fxnName + " found " + args.size() + " expected " + fxnRoot.argNames.size());
             }
             localVars.push(new HashMap<String, Double>());
             for(int i = 0; i < args.size(); i++) {
                 // unpack local args
-                setVar(fxnDef.argNames.get(i), args.get(i));
+                setVar(fxnRoot.argNames.get(i), args.get(i));
             }
             try {
-                fxnDef.eval(this); // recursion support
-            }
-            catch (ReturnInProgressException e) {
+                fxnRoot.eval(this); // recursion support
+            } catch (ReturnInProgressException e) {
                 retVal = e.getRetVal();
             }
             localVars.pop();

@@ -21,6 +21,7 @@ public class RootASTNode extends ASTNode {
             }
             catch (ReturnInProgressException e) {
                 System.out.println("Return from main program.");
+                e.printStackTrace();
                 System.exit(0);
             }
             if (currVal != null) {

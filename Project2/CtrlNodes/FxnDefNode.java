@@ -21,14 +21,8 @@ public class FxnDefNode extends CtrlNode {
 
     @Override
     public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
-        Double curVal;
-        for (int i = 0; i < exprs.size(); i++) {
-            curVal = exprs.get(i).eval(ps);
-            if (curVal != null) {
-                System.out.println(curVal);
-            }
-        }
-        throw new ReturnInProgressException(new Double(0));
+        ps.setFxn(name, new FxnRootNode(exprs, argNames));
+        return null;
     }
 
     @Override
@@ -41,7 +35,7 @@ public class FxnDefNode extends CtrlNode {
             rep.append(arg);
             rep.append(", ");
         }
-        rep.delete(rep.length()-2, rep.length()); //remove the last ", " from the representation
+        rep.delete(rep.length()-2, rep.length()); // remove the last ", " from the representation
         rep.append(") {\n");
         for (ExprNode expr : exprs) {
             rep.append("\t");
