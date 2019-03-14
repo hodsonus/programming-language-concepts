@@ -6,6 +6,7 @@ import Core.ExprNode;
 import Core.ProgramState;
 import Exceptions.CustomGrammarException;
 import Exceptions.ReturnInProgressException;
+import ValueNodes.AssNode;
 
 public class FxnRootNode extends CtrlNode {
 
@@ -19,11 +20,13 @@ public class FxnRootNode extends CtrlNode {
 
     @Override
     public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
-        Double curVal;
+        Double currVal;
+        ExprNode currExpr;
         for (int i = 0; i < exprs.size(); i++) {
-            curVal = exprs.get(i).eval(ps);
-            if (curVal != null) {
-                System.out.println(curVal);
+            currExpr = exprs.get(i);
+            currVal = currExpr.eval(ps);
+            if (!(currExpr instanceof AssNode) && currVal != null) {
+                System.out.println(currVal);
             }
         }
         return null;

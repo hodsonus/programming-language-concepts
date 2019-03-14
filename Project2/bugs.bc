@@ -10,4 +10,13 @@ define e (a, b) {
     return a;
 }
 
+define factorial(a) {
+    if (a <= 0) {
+        return 1;
+    } else {
+        return a * factorial(a-1)
+    }
+}
+
 e(10, 15) /* gcd(10,15) = 5 -> 5 */
+factorial(10);

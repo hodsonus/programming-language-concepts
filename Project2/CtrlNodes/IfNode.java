@@ -4,6 +4,7 @@ import Core.ExprNode;
 import Core.ProgramState;
 import Exceptions.CustomGrammarException;
 import Exceptions.ReturnInProgressException;
+import ValueNodes.AssNode;
 import ValueNodes.NumNode;
 
 import java.util.ArrayList;
@@ -21,20 +22,23 @@ public class IfNode extends CtrlNode {
 
     @Override
     public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
-        Double curVal;
+        Double currVal;
+        ExprNode currExpr;
         if (condition.eval(ps)!=0) {
             for (int i = 0; i < ifExpressions.size(); i++) {
-                curVal = ifExpressions.get(i).eval(ps);
-                if (curVal != null) {
-                    System.out.println(curVal);
+                currExpr = ifExpressions.get(i);
+                currVal = currExpr.eval(ps);
+                if (!(currExpr instanceof AssNode) && currVal != null) {
+                    System.out.println(currVal);
                 }
             }
         }
         else {
             for (int i = 0; i < elseExpressions.size(); i++) {
-                curVal = elseExpressions.get(i).eval(ps);
-                if (curVal != null) {
-                    System.out.println(curVal);
+                currExpr = elseExpressions.get(i);
+                currVal = currExpr.eval(ps);
+                if (!(currExpr instanceof AssNode) && currVal != null) {
+                    System.out.println(currVal);
                 }
             }
         }

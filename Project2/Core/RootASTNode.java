@@ -3,6 +3,7 @@ package Core;
 import java.util.List;
 import java.util.ArrayList;
 import Exceptions.*;
+import ValueNodes.AssNode;
 
 public class RootASTNode extends ASTNode {
 
@@ -14,17 +15,17 @@ public class RootASTNode extends ASTNode {
 
     public Double eval(ProgramState ps) throws CustomGrammarException {
         Double currVal;
-        for(ExprNode c : children) {
+        for(ExprNode currExpr : children) {
             currVal = null;
             try {
-                currVal = c.eval(ps);
+                currVal = currExpr.eval(ps);
             }
             catch (ReturnInProgressException e) {
                 System.out.println("Return from main program.");
                 e.printStackTrace();
                 System.exit(0);
             }
-            if (currVal != null) {
+            if (!(currExpr instanceof AssNode) && currVal != null) {
                 System.out.println(currVal);
             }
         }

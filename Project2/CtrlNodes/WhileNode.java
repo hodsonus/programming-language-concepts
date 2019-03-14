@@ -4,6 +4,7 @@ import Core.ExprNode;
 import Core.ProgramState;
 import Exceptions.CustomGrammarException;
 import Exceptions.ReturnInProgressException;
+import ValueNodes.AssNode;
 import ValueNodes.NumNode;
 
 import java.util.ArrayList;
@@ -17,12 +18,14 @@ public class WhileNode extends LoopNode {
 
     @Override
     public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
-        Double curVal;
+        Double currVal;
+        ExprNode currExpr;
         while (condition.eval(ps)!=0) {
             for (int i = 0; i < expressions.size(); i++) {
-                curVal = expressions.get(i).eval(ps);
-                if (curVal != null) {
-                    System.out.println(curVal);
+                currExpr = expressions.get(i);
+                currVal = currExpr.eval(ps);
+                if (!(currExpr instanceof AssNode) && currVal != null) {
+                    System.out.println(currVal);
                 }
             }
         }
