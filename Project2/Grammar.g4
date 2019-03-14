@@ -1,7 +1,6 @@
 grammar Grammar;
 
 /* TODO
-    Every program MUST terminate in either a newline or a semicolon. This includes braces, they must be followed be one of these.
     Do we need to implement these?
         Statements
             { statement_list }
@@ -29,7 +28,7 @@ grammar Grammar;
 }
 
 allExpr returns [RootASTNode i]:
-    (NL|';')*(topExpr (NL|';')+)*(EOF) {
+    (NL|';')*(topExpr ((';'|NL)+|EOF))* {
         $i = root;
     };
 

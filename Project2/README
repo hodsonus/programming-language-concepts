@@ -6,7 +6,7 @@ Files:
 - test.bc
 - README
 
-Buidl/Run Code: `make`
+Build/Run Code: `make`
 
 Functionality:
 - 
@@ -14,9 +14,8 @@ Functionality:
 Exceptional Behavior:
 - We dont have "assignment comparison assignment" in our for loops, rather, "numeric numeric numeric"
 - Constant value propagation is implemented.
-
 - Print function was implemented using Java println() rather than print() by design.
 - Modulus was implemented simply using the integer `%` operator without scaling for floats/doubles.
-- Depending on the system, un/comment line 180 to properly parse escape characters in print strings.
-- Invalid characters (non-double) will terminate the program on a read() operation.
 - Taking a square root or log of a negative number will result in NaN.
+
+- Invalid characters (non-double) will terminate the program on a read() operation.

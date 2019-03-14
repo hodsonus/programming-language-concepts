@@ -19,4 +19,4 @@ define factorial(a) {
 }
 
 e(10, 15) /* gcd(10,15) = 5 -> 5 */
-factorial(10);
+factorial(10)
