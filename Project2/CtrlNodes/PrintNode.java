@@ -15,7 +15,7 @@ public class PrintNode extends CtrlNode {
     }
 
     @Override
-    public Double eval(ProgramState ps) throws CustomGrammarException {
+    public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
         for(ValueNode vn : lis) {
             vn.print(ps);
         }

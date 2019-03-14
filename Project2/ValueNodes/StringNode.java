@@ -12,12 +12,18 @@ public class StringNode extends ValueNode {
     }
 
     @Override
-    public void print(ProgramState ps) throws CustomGrammarException {
+    public void print(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
         System.out.print(str);
     }
 
     @Override
     public String toString() {
         return "\"" + str + "\"";
+    }
+
+    @Override
+    @Deprecated
+    public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
+        return null;
     }
 }

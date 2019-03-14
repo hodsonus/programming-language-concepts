@@ -15,12 +15,12 @@ public class FxnCallNode extends NumNode {
     }
 
     @Override
-    public void print(ProgramState ps) throws CustomGrammarException {
+    public void print(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
         System.out.println(eval(ps));
     }
 
     @Override
-    public Double eval(ProgramState ps) throws CustomGrammarException {
+    public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
         // TODO figure out how to get last in higher level function call
         ArrayList<Double> evaluated = new ArrayList<Double>();
         for(NumNode nn : args) {

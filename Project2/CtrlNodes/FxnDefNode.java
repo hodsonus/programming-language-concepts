@@ -3,6 +3,7 @@ package CtrlNodes;
 import Core.ExprNode;
 import Core.ProgramState;
 import Exceptions.CustomGrammarException;
+import Exceptions.ReturnInProgressException;
 
 import java.util.ArrayList;
 
@@ -19,7 +20,7 @@ public class FxnDefNode extends CtrlNode {
     }
 
     @Override
-    public Double eval(ProgramState ps) throws CustomGrammarException {
+    public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
         Double curVal;
         for (int i = 0; i < exprs.size(); i++) {
             curVal = exprs.get(i).eval(ps);
@@ -27,7 +28,7 @@ public class FxnDefNode extends CtrlNode {
                 System.out.println(curVal);
             }
         }
-        return null; ////// TODO, HOW ARE WE GOING TO RETURN THE RET VALUE ? KEEP A RET VALUE ON THE LOCAL SCOPE ?
+        throw new ReturnInProgressException(new Double(0));
     }
 
     @Override

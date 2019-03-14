@@ -3,6 +3,7 @@ package CtrlNodes;
 import Core.ExprNode;
 import Core.ProgramState;
 import Exceptions.CustomGrammarException;
+import Exceptions.ReturnInProgressException;
 import ValueNodes.NumNode;
 
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ public class ForNode extends LoopNode {
     }
 
     @Override
-    public Double eval(ProgramState ps) throws CustomGrammarException {
+    public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
         Double curVal;
         for (assignment.eval(ps); condition.eval(ps)!=0; update.eval(ps)) {
             for (int i = 0; i < expressions.size(); i++) {

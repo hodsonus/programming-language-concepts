@@ -14,7 +14,7 @@ public class BinNode extends NumNode {
         this.op = op;
     }
 
-    private double silentEval(ProgramState ps) throws CustomGrammarException  {
+    private double silentEval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException  {
         double vl = nl.eval(ps), vr = nr.eval(ps);
         switch(op)  {
             case "+": return vl+vr;
@@ -36,14 +36,14 @@ public class BinNode extends NumNode {
     }
 
     @Override
-    public Double eval(ProgramState ps) throws CustomGrammarException {
+    public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
         double retVal = silentEval(ps);
         ps.setLast(retVal);
         return retVal;
     }
 
     @Override
-    public void print(ProgramState ps) throws CustomGrammarException {
+    public void print(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
         System.out.print(silentEval(ps));
     }
 

@@ -14,7 +14,7 @@ public class UniNode extends NumNode {
     }
 
     @Override
-    public Double eval(ProgramState ps) throws CustomGrammarException {
+    public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
         double retVal = n.eval(ps);
         switch(op)  {
             case "-": return -retVal;
@@ -24,7 +24,7 @@ public class UniNode extends NumNode {
     }
 
     @Override
-    public void print(ProgramState ps) throws CustomGrammarException {
+    public void print(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
         System.out.print(eval(ps));
     }
 

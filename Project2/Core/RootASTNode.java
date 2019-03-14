@@ -12,11 +12,17 @@ public class RootASTNode extends ASTNode {
         children = new ArrayList<ExprNode>();
     }
 
-    @Override
     public Double eval(ProgramState ps) throws CustomGrammarException {
         Double currVal;
         for(ExprNode c : children) {
-            currVal = c.eval(ps);
+            currVal = null;
+            try {
+                currVal = c.eval(ps);
+            }
+            catch (ReturnInProgressException e) {
+                System.out.println("Return from main program.");
+                System.exit(0);
+            }
             if (currVal != null) {
                 System.out.println(currVal);
             }
