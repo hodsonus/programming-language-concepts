@@ -13,7 +13,7 @@ public class ReturnNode extends CtrlNode {
     }
 
     @Override
-    public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
+    public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException, ContinueInProgressException, BreakInProgressException {
         Double returnVal = val.eval(ps);
         ps.setLast(returnVal);
         throw new ReturnInProgressException(returnVal);

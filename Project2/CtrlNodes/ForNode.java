@@ -2,6 +2,8 @@ package CtrlNodes;
 
 import Core.ExprNode;
 import Core.ProgramState;
+import Exceptions.BreakInProgressException;
+import Exceptions.ContinueInProgressException;
 import Exceptions.CustomGrammarException;
 import Exceptions.ReturnInProgressException;
 import ValueNodes.AssNode;
@@ -21,16 +23,24 @@ public class ForNode extends LoopNode {
     }
 
     @Override
-    public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
+    public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException, ContinueInProgressException, BreakInProgressException {
         Double currVal;
         ExprNode currExpr;
         for (assignment.eval(ps); condition.eval(ps)!=0; update.eval(ps)) {
-            for (int i = 0; i < expressions.size(); i++) {
-                currExpr = expressions.get(i);
-                currVal = currExpr.eval(ps);
-                if (!(currExpr instanceof AssNode) && currVal != null) {
-                    System.out.println(currVal);
+            try {
+                for (int i = 0; i < expressions.size(); i++) {
+                    currExpr = expressions.get(i);
+                    currVal = currExpr.eval(ps);
+                    if (!(currExpr instanceof AssNode) && currVal != null) {
+                        System.out.println(currVal);
+                    }
                 }
+            }
+            catch (ContinueInProgressException e) {
+                continue;
+            }
+            catch (BreakInProgressException e) {
+                break;
             }
         }
         return null;

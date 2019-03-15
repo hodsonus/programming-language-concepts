@@ -20,3 +20,19 @@ define factorial(a) {
 
 e(10, 15) /* gcd(10,15) = 5 -> 5 */
 factorial(10)
+for (i=0; i < 100; i++) {
+    i++
+    if ((i % 2) == 0) continue
+    if (i>=10) {
+        break;
+    }
+    print "i: ", i
+}
+
+x=0
+while (x++<100) {
+    if (x>=10) {
+        break;
+    }
+    print "x: ", x
+}

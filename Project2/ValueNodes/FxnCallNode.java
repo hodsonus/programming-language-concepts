@@ -15,12 +15,12 @@ public class FxnCallNode extends NumNode {
     }
 
     @Override
-    public void print(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
+    public void print(ProgramState ps) throws CustomGrammarException, ReturnInProgressException, ContinueInProgressException, BreakInProgressException {
         System.out.println(eval(ps));
     }
 
     @Override
-    public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
+    public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException, ContinueInProgressException, BreakInProgressException {
         ArrayList<Double> evaluated = new ArrayList<Double>();
         for(NumNode nn : args) {
             evaluated.add(nn.eval(ps));

@@ -22,8 +22,12 @@ public class RootASTNode extends ASTNode {
             }
             catch (ReturnInProgressException e) {
                 System.out.println("Return from main program.");
-                e.printStackTrace();
-                System.exit(0);
+            }
+            catch (BreakInProgressException e) {
+                System.out.println("Break outside a for/while");
+            }
+            catch (ContinueInProgressException e) {
+                System.out.println("Continue outside a for");
             }
             if (!(currExpr instanceof AssNode) && currVal != null) {
                 System.out.println(currVal);

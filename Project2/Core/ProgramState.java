@@ -98,7 +98,7 @@ public class ProgramState {
         }
     }
 
-    public double callFxn(String fxnName, ArrayList<Double> args) throws CustomGrammarException {
+    public double callFxn(String fxnName, ArrayList<Double> args) throws CustomGrammarException, ContinueInProgressException, BreakInProgressException {
         FxnRootNode fxnRoot = globalFxns.get(fxnName);
         Double retVal = null;
         if(fxnRoot == null) {

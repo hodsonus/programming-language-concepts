@@ -14,7 +14,7 @@ public class AssNode extends NumNode {
         this.n = n;
     }
 
-    private double silentEval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
+    private double silentEval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException, ContinueInProgressException, BreakInProgressException {
         double retVal = ps.getVar(id);
         double val = n.eval(ps);
         switch(op) {
@@ -31,7 +31,7 @@ public class AssNode extends NumNode {
     }
 
     @Override
-    public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
+    public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException, ContinueInProgressException, BreakInProgressException {
         double retVal = silentEval(ps);
         ps.setVar(id, silentEval(ps));
         ps.setLast(silentEval(ps));
@@ -39,7 +39,7 @@ public class AssNode extends NumNode {
     }
 
     @Override
-    public void print(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
+    public void print(ProgramState ps) throws CustomGrammarException, ReturnInProgressException, ContinueInProgressException, BreakInProgressException {
         System.out.print(silentEval(ps));
     }
 

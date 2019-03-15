@@ -101,6 +101,15 @@ ctrl returns [CtrlNode i]:
     }
     | 'return' {
         $i = new ReturnNode(new ConstNode(0.0));
+    }
+    | 'break' {
+        $i = new BreakNode();
+    }
+    | 'continue' {
+        $i = new ContinueNode();
+    }
+    | 'halt' {
+        $i = new HaltNode();
     };
 
 exprList returns [LinkedList<ExprNode> i]:

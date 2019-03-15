@@ -2,6 +2,8 @@ package CtrlNodes;
 
 import Core.ExprNode;
 import Core.ProgramState;
+import Exceptions.BreakInProgressException;
+import Exceptions.ContinueInProgressException;
 import Exceptions.CustomGrammarException;
 import Exceptions.ReturnInProgressException;
 import ValueNodes.AssNode;
@@ -21,7 +23,7 @@ public class IfNode extends CtrlNode {
     }
 
     @Override
-    public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException {
+    public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException, ContinueInProgressException, BreakInProgressException {
         Double currVal;
         ExprNode currExpr;
         if (condition.eval(ps)!=0) {
