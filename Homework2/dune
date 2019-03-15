@@ -1,9 +1,0 @@
-(env
-    (dev
-        (flags (:standard -warn-error -A))))
-
-(library
- (name bc)
- (inline_tests)
- (libraries core)
- (preprocess (pps ppx_inline_test ppx_expect ppx_jane)))

@@ -1,9 +1,21 @@
-*/.antlr
-*/.vscode
+# General
+bin/
+
+#VSCode
+.vscode/
+
+#Antlr
+.antlr/
 */Grammar*.java
-Project2/bin/*
-*.class
 *.tokens
 *.interp
 */*.tokens
 */*.interp
+
+#Java
+*.class
+
+#OCaml
+_build/
+.merlin
+dune-project
