@@ -7,12 +7,8 @@ grammar Grammar;
                 This is the compound statement. It allows multiple statements to be grouped together for execution.
             string
                 The string is printed to the output. Strings start with a double quote character and contain all characters until the next double quote character. All characters are taken literally, including any newline. No newline character is printed after the string.
-            break
-                This statement causes a forced exit of the most recent enclosing while statement or for statement.
-            continue
-                The continue statement (an extension) causes the most recent enclosing for statement to start the next iteration.
-            halt
-                The halt statement (an extension) is an executed statement that causes the bc processor to quit only when it is executed. For example, "if (0 == 1) halt" will not cause bc to terminate because the halt is not executed.
+        read
+            
 */
 
 @header {
