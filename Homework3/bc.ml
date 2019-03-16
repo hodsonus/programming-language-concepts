@@ -1,5 +1,5 @@
 (* includes *)
-open Core.Std
+open Core
 
 
 (* types *)
@@ -22,29 +22,62 @@ type statement =
   | While of expr*statement list
   | For of statement*expr*statement*statement list
   | FctDef of string * string list * statement list
-  | Break of ()
-  | Continue of ()
+  | Break
+  | Continue
 
 type block = statement list
 
-type env = N of float (* TODO *)
+type env = string float hashtbl
 
 type envStack = env list
 
-
 (* functions *)
+let trueOrFalse (flt:float): bool =
+    match flt with
+        | 0.0 -> false
+        | _ -> true
+
+let zeroOrOne (value:bool): float =
+    match value with
+        | true -> 1.0
+        | false -> 0.0
+
 let varEval (_v: string) (_q:envStack): float  =
   (* TODO *)
   0.0
 
   (* TODO *)
 let evalExpr (_e: expr) (_q:envStack): float =
-  match _e with
-    | Num(flt) ->
-    | Var(str) ->
-    | Op1(uniOp) ->
-    | Op2(binOp) ->
-    | Fct(fctCall) ->
+    match _e with
+        | Num(flt) -> flt
+        | Var(str) -> 0.0 (* TODO look up in table *)
+        | Op1(op, expr) ->
+            match op with
+                | "-" -> (-(evalExpr expr _q))
+                | "!" ->
+                    match (evalExpr expr _q) with
+                        | 0. ->  1.
+                        | _  ->  0.
+                | _ -> 0.0 (* TODO Error?? *)
+        | Op2(op, expr1, expr2) ->
+            match op with
+                | "+"  -> ((evalExpr expr1 _q) +. (evalExpr expr2 _q))
+                | "-"  -> ((evalExpr expr1 _q) -. (evalExpr expr2 _q))
+                | "*"  -> ((evalExpr expr1 _q) *. (evalExpr expr2 _q))
+                | "/"  -> ((evalExpr expr1 _q) /. (evalExpr expr2 _q))
+                | "%"  -> 0.0 (* TODO cast both to int and mod and then cast back ?? *)
+                | "^"  -> ((evalExpr expr1 _q) ** (evalExpr expr2 _q))
+                | "&&" -> zeroOrOne ((trueOrFalse (evalExpr expr1 _q)) && (trueOrFalse (evalExpr expr2 _q)))
+                | "||" -> zeroOrOne ((trueOrFalse (evalExpr expr1 _q)) || (trueOrFalse (evalExpr expr2 _q)))
+                | "<=" -> zeroOrOne ((evalExpr expr1 _q) <= (evalExpr expr2 _q))
+                | "<"  -> zeroOrOne ((evalExpr expr1 _q) <= (evalExpr expr2 _q))
+                | ">=" -> zeroOrOne ((evalExpr expr1 _q) <= (evalExpr expr2 _q))
+                | ">"  -> zeroOrOne ((evalExpr expr1 _q) <= (evalExpr expr2 _q))
+                | "==" -> zeroOrOne ((evalExpr expr1 _q) <= (evalExpr expr2 _q))
+                | "!=" -> zeroOrOne ((evalExpr expr1 _q) <= (evalExpr expr2 _q))
+                | "==" -> zeroOrOne ((evalExpr expr1 _q) <= (evalExpr expr2 _q))
+                | _   -> 0.0 (* TODO Error?? *)
+        | Fct(fctCall) -> 0.0 (* get function from the hash map ?? *)
 
 let evalCode (_code: block) (_q:envStack): unit =
   (* TODO *)
@@ -62,11 +95,12 @@ let evalStatement (s: statement) (q:envStack): envStack =
           evalCode codeT q
         else
           evalCode codeF q
-        ;q
+        ;
+        q
       | _ -> q (*ignore *)
 
-let runCode(code: block): () =
-  evalCode(param1, param2, ...)
+let runCode(code: block): unit = ()
+  (*evalCode(param1, param2, ...)*)
 
 
 (* tests *)
