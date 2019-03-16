@@ -1,5 +1,8 @@
+x = read();
+x
+
 define e (a, b) {
-    while (b != 0) { 
+    while (b != 0) {
         if (a > b){
             a = a-b;
         } else {

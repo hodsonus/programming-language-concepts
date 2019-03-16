@@ -33,8 +33,8 @@ public class AssNode extends NumNode {
     @Override
     public Double eval(ProgramState ps) throws CustomGrammarException, ReturnInProgressException, ContinueInProgressException, BreakInProgressException {
         double retVal = silentEval(ps);
-        ps.setVar(id, silentEval(ps));
-        ps.setLast(silentEval(ps));
+        ps.setVar(id, retVal);
+        ps.setLast(retVal);
         return retVal;
     }
 

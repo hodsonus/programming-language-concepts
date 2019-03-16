@@ -15,11 +15,13 @@ public class ProgramState {
     private HashMap<String, Double> globalVars;
     private Stack<HashMap<String, Double>> localVars;
     private HashMap<String, FxnRootNode> globalFxns; // only global
+    private Scanner sc;
 
     public ProgramState() {
         this.globalVars = new HashMap<String, Double>();
         this.localVars = new Stack<HashMap<String, Double>>();
         this.globalFxns = new HashMap<String, FxnRootNode>();
+        this.sc = new Scanner(System.in);
     }
 
     private boolean isInGlobalScope() {
@@ -88,11 +90,7 @@ public class ProgramState {
             case "l": return Math.log(args.get(0));
             case "e": return Math.exp(args.get(0));
             case "sqrt": return Math.sqrt(args.get(0));
-            case "read":
-                Scanner sc = new Scanner(System.in);
-                double retVal = sc.nextDouble();
-                sc.close();
-                return retVal;
+            case "read": return Double.parseDouble(sc.nextLine());
             // redundant throw not found for default
             default: throw new FxnDefNotFoundException(fxnName);
         }
