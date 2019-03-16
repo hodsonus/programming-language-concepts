@@ -1,19 +1,21 @@
- create an overall runCode (code: block) function that evaluates the code (call evalCode with proper parameters from this function). Change the test code to call runCode instead of evalCode.
+(* create an overall runCode (code: block) function that evaluates the code
+(call evalCode with proper parameters from this function).
+Change the test code to call runCode instead of evalCode. *)
 
 open Core
 
-type sExpr = 
+type sExpr =
   | Atom of string
   | List of sExpr list
 
-type expr = 
+type expr =
   | Num of float
   | Var of string
   | Op1 of string*expr
   | Op2 of string*expr*expr
   | Fct of string*expr list
 
-type statement = 
+type statement =
   | Assign of string*expr
   | Return of expr
   | Expr of expr
@@ -24,7 +26,7 @@ type statement =
   | Break of ()
   | Continue of ()
 
-type block = statement list 
+type block = statement list
 
 type env = N of float (* complete *)
 
@@ -32,29 +34,29 @@ type envQueue = env list
 
 let varEval (_v: string) (_q:envQueue): float  =
   (* Implement procedural stuff here? *)
-  0.0  
+  0.0
 
 let evalExpr (_e: expr) (_q:envQueue): float  = 0.0
 
 (* Test for expression *)
-let%expect_test "evalNum" = 
+let%expect_test "evalNum" =
   evalExpr (Num 10.0) [] |>
   printf "%F";
   [%expect {| 10. |}]
 
-let evalCode (_code: block) (_q:envQueue): unit = 
+let evalCode (_code: block) (_q:envQueue): unit =
   (* crate new environment *)
   (* user fold_left  *)
   (* pop the local environment *)
   print_endline "Not implemented"
 
 let evalStatement (s: statement) (q:envQueue): envQueue =
-  match s with 
+  match s with
     | Assign(_v, _e) -> (* eval e and store in v *) q
-    | If(e, codeT, codeF) -> 
+    | If(e, codeT, codeF) ->
       let cond = evalExpr e q in
         if(cond>0.0) then
-          evalCode codeT q 
+          evalCode codeT q
         else
           evalCode codeF q
         ;q
@@ -66,11 +68,11 @@ let evalStatement (s: statement) (q:envQueue): envQueue =
 
 let p1: block = [
   Assign("v", Num(1.0));
-  Expr(Var("v")) 
+  Expr(Var("v"))
 ]
 
 let%expect_test "p1" =
-  evalCode p1 []; 
+  evalCode p1 [];
   [%expect {| 1. |}]
 
 (*v = 1.0;
@@ -85,8 +87,8 @@ let%expect_test "p1" =
 let p2: block = [
   Assign("v", Num(1.0));
   If(
-    Op2(">", Var("v"), Num(10.0)), 
-    [Assign("v", Op2("+", Var("v"), Num(1.0)))], 
+    Op2(">", Var("v"), Num(10.0)),
+    [Assign("v", Op2("+", Var("v"), Num(1.0)))],
     [For(
       Assign("i", Num(2.0)),
       Op2("<", Var("i"), Num(10.0)),
@@ -98,7 +100,7 @@ let p2: block = [
 ]
 
 let%expect_test "p1" =
-  evalCode p2 []; 
+  evalCode p2 [];
   [%expect {| 3628800. |}]
 
 (*Fibbonaci sequence
@@ -111,7 +113,7 @@ let%expect_test "p1" =
   f(3)
   f(5)
 *)
-let p3: block = 
+let p3: block =
   [
     FctDef("f", ["x"], [
       If(
