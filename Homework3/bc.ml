@@ -27,7 +27,7 @@ type statement =
 
 type block = statement list
 
-type env = string float hashtbl
+type env = (string, float)Hashtbl.t
 
 type envStack = env list
 
@@ -47,19 +47,22 @@ let varEval (_v: string) (_q:envStack): float  =
   0.0
 
   (* TODO *)
-let evalExpr (_e: expr) (_q:envStack): float =
+let rec evalExpr (_e: expr) (_q:envStack): float =
     match _e with
         | Num(flt) -> flt
         | Var(str) -> 0.0 (* TODO look up in table *)
-        | Op1(op, expr) ->
+        | Op1(op, expr) -> (
             match op with
-                | "-" -> (-(evalExpr expr _q))
-                | "!" ->
+                | "-" -> (-.1.0*.(evalExpr expr _q))
+                | "!" -> (
                     match (evalExpr expr _q) with
                         | 0. ->  1.
                         | _  ->  0.
+                    )
+                | "" -> 0.0 (* TODO catches default non-null case, rm after making err wrapper?*)
                 | _ -> 0.0 (* TODO Error?? *)
-        | Op2(op, expr1, expr2) ->
+            )
+        | Op2(op, expr1, expr2) -> (
             match op with
                 | "+"  -> ((evalExpr expr1 _q) +. (evalExpr expr2 _q))
                 | "-"  -> ((evalExpr expr1 _q) -. (evalExpr expr2 _q))
@@ -76,8 +79,9 @@ let evalExpr (_e: expr) (_q:envStack): float =
                 | "==" -> zeroOrOne ((evalExpr expr1 _q) <= (evalExpr expr2 _q))
                 | "!=" -> zeroOrOne ((evalExpr expr1 _q) <= (evalExpr expr2 _q))
                 | "==" -> zeroOrOne ((evalExpr expr1 _q) <= (evalExpr expr2 _q))
-                | _   -> 0.0 (* TODO Error?? *)
-        | Fct(fctCall) -> 0.0 (* get function from the hash map ?? *)
+                | _ -> 0.0 (* TODO Error?? *)
+            )
+        | Fct(fctName, exprList) -> 0.0 (* get function from the hash map ?? *)
 
 let evalCode (_code: block) (_q:envStack): unit =
   (* TODO *)
@@ -115,7 +119,7 @@ let p1: block = [
   Expr(Var("v"))
 ]
 let%expect_test "p1" =
-  runCode p1 [];
+  evalCode p1 []; (* TODO use runCode? *)
   [%expect {| 1. |}]
 
 (* Sample Program
@@ -139,7 +143,7 @@ let p2: block = [
   Expr(Var("v"))
 ]
 let%expect_test "p1" =
-  runCode p2 [];
+  evalCode p2 []; (* TODO use runCode? *)
   [%expect {| 3628800. |}]
 
 (* Fibbonaci Sequence
@@ -168,5 +172,5 @@ let p3: block = [
   Expr(Fct("f", [Num(5.0)]));
 ]
 let%expect_test "p3" =
-  runCode p3 [];
+  evalCode p3 []; (* TODO use runCode? *)
   [%expect {| 2. 5. |}]
