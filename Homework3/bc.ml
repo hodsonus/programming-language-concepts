@@ -1,3 +1,5 @@
+ create an overall runCode (code: block) function that evaluates the code (call evalCode with proper parameters from this function). Change the test code to call runCode instead of evalCode.
+
 open Core
 
 type sExpr = 
@@ -18,7 +20,9 @@ type statement =
   | If of expr*statement list * statement list
   | While of expr*statement list
   | For of statement*expr*statement*statement list
-  | FctDef of string * string list * statement list 
+  | FctDef of string * string list * statement list
+  | Break of ()
+  | Continue of ()
 
 type block = statement list 
 
