@@ -1,9 +1,8 @@
-(* create an overall runCode (code: block) function that evaluates the code
-(call evalCode with proper parameters from this function).
-Change the test code to call runCode instead of evalCode. *)
+(* includes *)
+open Core.Std
 
-open Core
 
+(* types *)
 type sExpr =
   | Atom of string
   | List of sExpr list
@@ -28,29 +27,33 @@ type statement =
 
 type block = statement list
 
-type env = N of float (* complete *)
+type env = N of float (* TODO *)
 
-type envQueue = env list
+type envStack = env list
 
-let varEval (_v: string) (_q:envQueue): float  =
-  (* Implement procedural stuff here? *)
+
+(* functions *)
+let varEval (_v: string) (_q:envStack): float  =
+  (* TODO *)
   0.0
 
-let evalExpr (_e: expr) (_q:envQueue): float  = 0.0
+  (* TODO *)
+let evalExpr (_e: expr) (_q:envStack): float =
+  match _e with
+    | Num(flt) ->
+    | Var(str) ->
+    | Op1(uniOp) ->
+    | Op2(binOp) ->
+    | Fct(fctCall) ->
 
-(* Test for expression *)
-let%expect_test "evalNum" =
-  evalExpr (Num 10.0) [] |>
-  printf "%F";
-  [%expect {| 10. |}]
-
-let evalCode (_code: block) (_q:envQueue): unit =
-  (* crate new environment *)
+let evalCode (_code: block) (_q:envStack): unit =
+  (* TODO *)
+  (* create new environment *)
   (* user fold_left  *)
   (* pop the local environment *)
   print_endline "Not implemented"
 
-let evalStatement (s: statement) (q:envQueue): envQueue =
+let evalStatement (s: statement) (q:envStack): envStack =
   match s with
     | Assign(_v, _e) -> (* eval e and store in v *) q
     | If(e, codeT, codeF) ->
@@ -62,71 +65,74 @@ let evalStatement (s: statement) (q:envQueue): envQueue =
         ;q
       | _ -> q (*ignore *)
 
-(*v = 10;
-  v // display v
-*)
+let runCode(code: block): () =
+  evalCode(param1, param2, ...)
 
+
+(* tests *)
+let%expect_test "evalNum" =
+  evalExpr (Num 10.0) [] |>
+  printf "%F";
+  [%expect {| 10. |}]
+
+(*v = 10; v // display v *)
 let p1: block = [
   Assign("v", Num(1.0));
   Expr(Var("v"))
 ]
-
 let%expect_test "p1" =
-  evalCode p1 [];
+  runCode p1 [];
   [%expect {| 1. |}]
 
-(*v = 1.0;
-  if (v>10.0) then
-    v = v + 1.0
-  else
-    for(i=2.0; i<10.0; i++) {
-      v = v * i
-    }
-  v // display v
+(* Sample Program
+v = 1.0;
+if (v>10.0) then
+  v = v + 1.0
+else
+  for(i=2.0; i<10.0; i++) {
+    v = v * i
+  }
+v // display v
 *)
 let p2: block = [
   Assign("v", Num(1.0));
-  If(
-    Op2(">", Var("v"), Num(10.0)),
+  If(Op2(">", Var("v"), Num(10.0)),
     [Assign("v", Op2("+", Var("v"), Num(1.0)))],
-    [For(
-      Assign("i", Num(2.0)),
-      Op2("<", Var("i"), Num(10.0)),
-      Expr(Op1("++a", Var("i"))),
+    [For(Assign("i", Num(2.0)), Op2("<", Var("i"), Num(10.0)), Expr(Op1("++a", Var("i"))),
       [Assign("v", Op2("*", Var("v"), Var("i")))]
     )]
   );
   Expr(Var("v"))
 ]
-
 let%expect_test "p1" =
-  evalCode p2 [];
+  runCode p2 [];
   [%expect {| 3628800. |}]
 
-(*Fibbonaci sequence
-  define f(x) {
-      if (x<1.0) then
-          return (1.0)
-      else
-          return (f(x-1)+f(x-2))
-  }
-  f(3)
-  f(5)
+(* Fibbonaci Sequence
+define f(x) {
+    if (x<1.0) then
+        return (1.0)
+    else
+        return (f(x-1)+f(x-2))
+}
+f(3)
+f(5)
 *)
-let p3: block =
-  [
-    FctDef("f", ["x"], [
-      If(
-        Op2("<", Var("x"), Num(1.0)),
-        [Return(Num(1.0))],
-        [Return(Op2("+",
+let p3: block = [
+  FctDef("f", ["x"], [
+    If(Op2("<", Var("x"), Num(1.0)),
+      [Return(Num(1.0))],
+      [Return(
+        Op2("+",
           Fct("f", [Op2("-", Var("x"), Num(1.0))]),
           Fct("f", [Op2("-", Var("x"), Num(1.0))])
-        ))])]);
-    Expr(Fct("f", [Num(3.0)]));
-    Expr(Fct("f", [Num(5.0)]));
-  ]
-
+        )
+      )]
+    )]
+  );
+  Expr(Fct("f", [Num(3.0)]));
+  Expr(Fct("f", [Num(5.0)]));
+]
 let%expect_test "p3" =
-  evalCode p3 [];
+  runCode p3 [];
   [%expect {| 2. 5. |}]
