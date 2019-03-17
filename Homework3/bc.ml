@@ -8,160 +8,157 @@ how to handle pre/post inc/dec ops
 how to handle mod
 how to read command line input
 
-multiple params is better than product type breakdown
+is multiple params better than product type breakdown
 *)
 
 (* ============================== types ============================== *)
 
 type expr = (* a fragment of code evaluable to float, no state change *)
-    | Num   of float
-    | Var   of string
-    | Op1   of string*expr
-    | Op2   of string*expr*expr
+| Num   of float
+| Var   of string
+| Op1   of string*expr
+| Op2   of string*expr*expr
 
 type statement = (* a line of code, possible state change *)
-    | Expr     of expr
-    | Assign   of string*expr
-    | If       of expr*statement list*statement list
-    | While    of expr*statement list
-    | For      of statement*expr*statement*statement list
-    | FDef     of string*string list*statement list
-    | FCall    of string*expr list
-    | Return   of expr
-    | Break    of unit
-    | Continue of unit
+| Expr     of expr
+| Assign   of string*expr
+| If       of expr*statement list*statement list
+| While    of expr*statement list
+| For      of statement*expr*statement*statement list
+| FDef     of string*string list*statement list
+| FCall    of string*expr list
+| Return   of expr
+| Break    of unit
+| Continue of unit
 type block = (* a block of code, composition of statements *)
-    | Block of statement list
+(* | Block of *) statement list
 
 type vars = (* a variable store for a given scope *)
-    Vars of (string, float)Hashtbl.t
+| Vars of (string, float)Hashtbl.t
 type fxns = (* a global store for function definitions *)
-    Fxns of (string, block)Hashtbl.t
+(*| Fxns of *) (string, block)Hashtbl.t
 type scopeStack = (* a stack maintaining variable store scopes *)
-    ScopeStack of vars list
+(* | ScopeStack of *) vars list
 
 (* ============================== functions ============================== *)
 
 (* converts a float to a bool *)
 let bool_of_float (flt: float) : bool =
-    match flt with | 0.0 -> false | _ -> true
+    match flt with | 0. -> false | _ -> true
 
 (* converts a bool to a float *)
 let float_of_bool (value: bool) : float =
-    match value with | true -> 1.0 | false -> 0.0
+    match value with | true -> 1. | false -> 0.
 
 (* performs a variable value lookup given a program state *)
 let rec evalVar (v: string) (ss: scopeStack) : float =
-    match ss with
-        | ScopeStack(lis) -> (
-            match List.length lis with
-            | 0 -> raise(Failure "Illegal variable environment state.")
-            | 1 -> ( (* in global scope *)
-                match (List.nth lis ((List.length lis)-1)) with
-                    | Vars(vs) -> (
-                        match Hashtbl.find_opt vs v with
-                            | float -> (Hashtbl.find vs v) (* look in local (tail) *)
-                            | None  -> ( (* call to look in global scope *)
-                                let tmpVL = Vars(vs)::[] in
-                                let tmpSS = ScopeStack(tmpVL) in
-                                evalVar v tmpSS
-                            )
-                    )
-                )
-            | _ -> ( (* not in global scope *)
-                match lis with
-                    | Vars(vs) -> (
-                        match Hashtbl.find_opt (List.hd vs) v with
-                            | float -> Hashtbl.find_opt (List.hd vs) v (* look in global (head) *)
-                            | None  -> 0.0
-                        )
+    match List.length ss with
+    | 0 -> raise(Failure "Illegal variable environment state.")
+    | 1 -> ( (* in global scope *)
+        match List.hd ss with
+        | Vars(vs) -> (
+            match Hashtbl.find_opt vs v with
+            | float -> (Hashtbl.find vs v) (* look in local (tail) *)
+            | None  -> ( (* call to look in global scope *)
+                let globalSS = Vars(vs)::[] in
+                evalVar v globalSS
                 )
             )
+        )
+    | _ -> ( (* not in global scope *)
+        match (List.nth ss ((List.length ss)-1)) with
+        | Vars(vs) -> (
+            match Hashtbl.find_opt vs v with
+            | float -> Hashtbl.find vs v (* look in global (head) *)
+            | None  -> 0.
+            )
+        )
 
 (* performs an expression evaluation given a program state *)
-let rec evalExpr (e: expr) (vs: scopeStack) (fs: fxns) : float =
+let rec evalExpr (e: expr) (ss: scopeStack) (fs: fxns) : float =
     match e with
-        | Num(flt) -> flt
-        | Var(str) -> evalVar(str, vs)
-        | Op1(op, expr) -> (
-            match op with
-                | "-" -> (-.(evalExpr expr vs fs))
-                | "!" -> (float_of_bool(!bool_of_float(evalExpr expr vs fs)))
-                | _   -> raise(Failure "Unknown unary operator `" ^ op ^ "`.")
-            )
-        | Op2(op, expr1, expr2) -> (
-            match op with
-                | "+"  -> ((evalExpr expr1 vs fs) +. (evalExpr expr2 vs fs))
-                | "-"  -> ((evalExpr expr1 vs fs) -. (evalExpr expr2 vs fs))
-                | "*"  -> ((evalExpr expr1 vs fs) *. (evalExpr expr2 vs fs))
-                | "/"  -> ((evalExpr expr1 vs fs) /. (evalExpr expr2 vs fs))
-                | "^"  -> ((evalExpr expr1 vs fs) ** (evalExpr expr2 vs fs))
-                | "<=" -> float_of_bool ((evalExpr expr1 vs fs) <= (evalExpr expr2 vs fs))
-                | "<"  -> float_of_bool ((evalExpr expr1 vs fs) <  (evalExpr expr2 vs fs))
-                | ">=" -> float_of_bool ((evalExpr expr1 vs fs) >= (evalExpr expr2 vs fs))
-                | ">"  -> float_of_bool ((evalExpr expr1 vs fs) >  (evalExpr expr2 vs fs))
-                | "==" -> float_of_bool ((evalExpr expr1 vs fs) =  (evalExpr expr2 vs fs))
-                | "!=" -> float_of_bool ((evalExpr expr1 vs fs) <> (evalExpr expr2 vs fs))
-                | "&&" -> float_of_bool (
-                    (bool_of_float (evalExpr expr1 vs fs)) && (bool_of_float (evalExpr expr2 vs fs)))
-                | "||" -> float_of_bool (
-                    (bool_of_float (evalExpr expr1 vs fs)) || (bool_of_float (evalExpr expr2 vs fs)))
-                | "%"  -> float_of_int( (* TODO verify casting solution is acceptable *)
-                    int_of_float(evalExpr expr1 vs fs) % int_of_float(evalExpr expr1 vs fs))
-                | _    -> raise(Failure "Unknown binary operator `" ^ op ^ "`.")
-            )
+    | Num(flt) -> flt
+    | Var(str) -> evalVar str ss
+    | Op1(op, ex) -> (
+        match op with
+        | "-" -> -.(evalExpr ex ss fs)
+        | "!" -> float_of_bool(not(bool_of_float(evalExpr ex ss fs)))
+        | _   -> raise(Failure ("Unknown unary operator `" ^ op ^ "`."))
+        )
+    | Op2(op, expr1, expr2) -> (
+        match op with
+        | "+"  -> ((evalExpr expr1 ss fs) +. (evalExpr expr2 ss fs))
+        | "-"  -> ((evalExpr expr1 ss fs) -. (evalExpr expr2 ss fs))
+        | "*"  -> ((evalExpr expr1 ss fs) *. (evalExpr expr2 ss fs))
+        | "/"  -> ((evalExpr expr1 ss fs) /. (evalExpr expr2 ss fs))
+        | "^"  -> ((evalExpr expr1 ss fs) ** (evalExpr expr2 ss fs))
+        | "<=" -> float_of_bool ((evalExpr expr1 ss fs) <= (evalExpr expr2 ss fs))
+        | "<"  -> float_of_bool ((evalExpr expr1 ss fs) <  (evalExpr expr2 ss fs))
+        | ">=" -> float_of_bool ((evalExpr expr1 ss fs) >= (evalExpr expr2 ss fs))
+        | ">"  -> float_of_bool ((evalExpr expr1 ss fs) >  (evalExpr expr2 ss fs))
+        | "==" -> float_of_bool ((evalExpr expr1 ss fs) =  (evalExpr expr2 ss fs))
+        | "!=" -> float_of_bool ((evalExpr expr1 ss fs) <> (evalExpr expr2 ss fs))
+        | "&&" -> float_of_bool (
+            (bool_of_float (evalExpr expr1 ss fs)) && (bool_of_float (evalExpr expr2 ss fs)))
+        | "||" -> float_of_bool (
+            (bool_of_float (evalExpr expr1 ss fs)) || (bool_of_float (evalExpr expr2 ss fs)))
+        | "%"  -> float_of_int ( (* TODO verify casting solution is acceptable *)
+            int_of_float(evalExpr expr1 ss fs) % int_of_float(evalExpr expr1 ss fs))
+        | _    -> raise(Failure ("Unknown binary operator `" ^ op ^ "`."))
+        )
 
 (*  *)
-let evalBlock(blk: block) (vs: scopeStack) (fs: fxns) : unit =
+let evalBlock(blk: block) (ss: scopeStack) (fs: fxns) : unit =
   (* TODO *)
   (* create new environment *)
   (* user fold_left *)
   (* pop the local environment *)
-  printendline "Not implemented"
+  print_endline "Not implemented"
 
 (*  *)
-let evalStatement (s: statement) (vs: scopeStack) (fs: fxns) : scopeStack =
-  match s with
-    | Expr(e) -> evalExpr e vs fs
-    | Assign(v, e) -> Hashtbl.replace (List.nth vs (List.length vs-1)) evalExpr e vs fs
-    | If(e, blkT, blkF) -> (
-        match (evalExpr e q)>0.0 with
-            | true -> evalBlock blkT q
-            | false -> evalBlock blkF q
-        ); vs
-    | While(e, blk) -> vs
-    | For(init, cond, term, blk) -> vs
-    | FDef(f, params, blk) -> vs
+let evalStatement (s: statement) (ss: scopeStack) (fs: fxns) : scopeStack =
+    match s with
+    | Expr(e) -> ( let ee = evalExpr e ss fs in ss ) (* TODO fix all these bullshit lines *)
+    | Assign(v, e) -> ( (*let ee = Hashtbl.replace (List.nth ss (List.length ss-1)) (evalExpr e ss fs) in*) ss )
+    | If(e, blkT, blkF) ->
+        let x = (
+        match bool_of_float(evalExpr e ss fs) with
+        | true -> evalBlock blkT ss fs; ss
+        | false -> evalBlock blkF ss fs; ss
+        ) in ss
+    | While(e, blk) -> ss
+    | For(init, cond, term, blk) -> ss
+    | FDef(f, params, blk) -> ss
     | FCall(f, exprList) -> (
-        match fs.find_opt(f) with
-            | Block(blk) -> evalBlock blk vs fs
-            | None -> (
-                match f with (* TODO *)
-                    | "s"    -> ( match exprList.length == 1 with
-                            | true  -> sin(evalExpr exprList.hd vs fs)
-                            | false -> raise(Failure "Sine function takes one argument."))
-                    | "c"    -> ( match exprList.length == 1 with
-                            | true  -> cos(evalExpr exprList.hd vs fs)
-                            | false -> raise(Failure "Cosine function takes one argument."))
-                    | "e"    -> ( match exprList.length == 1 with
-                            | true  -> exp(evalExpr exprList.hd vs fs)
-                            | false -> raise(Failure "Exp function takes one argument."))
-                    | "l"    -> ( match exprList.length == 1 with
-                            | true  -> log(evalExpr exprList.hd vs fs)
-                            | false -> raise(Failure "Log function takes one argument."))
-                    | "sqrt" -> ( match exprList.length == 1 with
-                            | true  -> sqrt(evalExpr exprList.hd vs fs)
-                            | false -> raise(Failure "Sqrt function takes one argument."))
-                    | "read" -> ( match exprList.length == 0 with
-                            | true  ->  (let ic = open_in in float_of_string(input_line ic))
-                            | false -> raise(Failure "Read function takes no arguments."))
-                    | _ -> raise(Failure "Unknown function call to " ^ f ^ ".")
-                )
+        match Hashtbl.find_opt fs f with
+        | block -> evalBlock (Hashtbl.find fs f) ss fs; ss
+        | None -> (
+            match f with (* TODO *)
+            | "s"    -> ( match List.length exprList == 1 with
+                    | true  -> let x = sin(evalExpr (List.hd exprList) ss fs) in ss
+                    | false -> raise(Failure "Sine function takes one argument."))
+            | "c"    -> ( match List.length exprList == 1 with
+                    | true  -> let x = cos(evalExpr (List.hd exprList) ss fs) in ss
+                    | false -> raise(Failure "Cosine function takes one argument."))
+            | "e"    -> ( match List.length exprList == 1 with
+                    | true  -> let x = exp(evalExpr (List.hd exprList) ss fs) in ss
+                    | false -> raise(Failure "Exp function takes one argument."))
+            | "l"    -> ( match List.length exprList == 1 with
+                    | true  -> let x = log(evalExpr (List.hd exprList) ss fs) in ss
+                    | false -> raise(Failure "Log function takes one argument."))
+            | "sqrt" -> ( match List.length exprList == 1 with
+                    | true  -> let x = sqrt(evalExpr (List.hd exprList) ss fs) in ss
+                    | false -> raise(Failure "Sqrt function takes one argument."))
+            | "read" -> ( match List.length exprList == 0 with
+                    | true  -> ( let x = read_float() in ss )
+                    | false -> raise(Failure "Read function takes no arguments."))
+            | _ -> raise(Failure ("Unknown function call to " ^ f ^ "."))
+            )
         )
-    | Return(e) -> vs
-    | Break() -> vs
-    | Continue() -> vs
-    | _ -> vs (*ignore *)
+    | Return(e) -> ss
+    | Break() -> ss
+    | Continue() -> ss
+    | _ -> ss (*ignore *)
 
 (*  *)
 let runCode(blk: block): unit = ()
