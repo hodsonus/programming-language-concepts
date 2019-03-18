@@ -1,4 +1,3 @@
-open Core
 open Stdlib
 
 (*
@@ -67,7 +66,7 @@ let float_of_bool (value: bool) : float =
 (* checks whether a block contains a function definition *)
 let rec contains_fxndef (blk: block) : bool =
     match blk with
-        | hd::tl -> contains_fxndef tl
+        | _::tl -> contains_fxndef tl
         | [] -> true
 
 (* performs a variable value lookup given a program state *)
@@ -222,25 +221,24 @@ and evalFxn (fxn: fxndef) (el: expr list) (ss: scopeStack) (fs: fxns) (* : (floa
         let ss1 = unpack_args table (fxn.params) el ss fs in
             let ss2 = ss1@[table] in (* add local scope to scope stack *)
                 try (* call evalBlock to evaluate the body of the fxn. this throws (should) a return exception *)
-                    let ss3,dc = evalBlock fxn.blk ss2 fs in
+                    let ss3,_ = evalBlock fxn.blk ss2 fs in
                         0.,(List.rev (List.tl (List.rev ss3))) (* pop local scope,no return encountered,return 0 *)
                 with
                     | ReturnInProgress(flt,ssr) -> flt,(List.rev (List.tl (List.rev ssr))) (* pop local scope,return encountered -> return the ret val *)
 
 (* recursively unpacks arguments into a new local scope for initializing function calls *)
 and unpack_args (tbl: (string,float)Stdlib.Hashtbl.t) (params: string list) (el: expr list) (ss: scopeStack) (fs: fxns) : scopeStack =
-    let len = (List.length el) in
-    match (List.length params) with
-    | len -> (
-        match len with
-        | 0 -> ss
-        | _ -> (
-            let x,ss1 = evalExpr (List.hd el) ss fs in
-            Stdlib.Hashtbl.add tbl (List.hd params) x;
-            unpack_args tbl (List.tl params) (List.tl el) ss1 fs
+    match (List.length params) = (List.length el) with
+        | true -> (
+            match (List.length el) with
+                | 0 -> ss
+                | _ -> (
+                    let x,ss1 = evalExpr (List.hd el) ss fs in
+                    Stdlib.Hashtbl.add tbl (List.hd params) x;
+                    unpack_args tbl (List.tl params) (List.tl el) ss1 fs
+                )
         )
-    )
-    | _ -> raise(Failure "Invalid number of arguments to custom function.")
+        | false -> raise(Failure "Invalid number of arguments to custom function.")
 
 (* takes a list of statements and evaluates them (global or function scope), returns new state *)
 and evalBlock (blk: block) (ss: scopeStack) (fs: fxns) (* : scopeStack,fxns *) =
