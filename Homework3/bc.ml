@@ -64,6 +64,12 @@ let bool_of_float (flt: float) : bool =
 let float_of_bool (value: bool) : float =
     match value with | true -> 1. | false -> 0.
 
+(* checks whether a block contains a function definition *)
+let rec contains_fxndef (blk: block) : bool =
+    match blk with
+        | hd::tl -> contains_fxndef tl
+        | [] -> true
+
 (* performs a variable value lookup given a program state *)
 let rec evalVar (v: string) (ss: scopeStack) : float =
     match List.length ss with
@@ -213,7 +219,7 @@ let rec evalExpr (e: expr) (ss: scopeStack) (fs: fxns) (* : (float,scopeStack) *
 (* performs a function call given a program state and returns a value and new state *)
 and evalFxn (fxn: fxndef) (el: expr list) (ss: scopeStack) (fs: fxns) (* : (float,scopeStack) *) =
     let table = Stdlib.Hashtbl.create 10 in (* instantiate local scope *)
-        let ss1 = unpackArgs table (fxn.params) el ss fs in
+        let ss1 = unpack_args table (fxn.params) el ss fs in
             let ss2 = ss1@[table] in (* add local scope to scope stack *)
                 try (* call evalBlock to evaluate the body of the fxn. this throws (should) a return exception *)
                     let ss3,dc = evalBlock fxn.blk ss2 fs in
@@ -222,7 +228,7 @@ and evalFxn (fxn: fxndef) (el: expr list) (ss: scopeStack) (fs: fxns) (* : (floa
                     | ReturnInProgress(flt,ssr) -> flt,(List.rev (List.tl (List.rev ssr))) (* pop local scope,return encountered -> return the ret val *)
 
 (* recursively unpacks arguments into a new local scope for initializing function calls *)
-and unpackArgs (tbl: (string,float)Stdlib.Hashtbl.t) (params: string list) (el: expr list) (ss: scopeStack) (fs: fxns) : scopeStack =
+and unpack_args (tbl: (string,float)Stdlib.Hashtbl.t) (params: string list) (el: expr list) (ss: scopeStack) (fs: fxns) : scopeStack =
     let len = (List.length el) in
     match (List.length params) with
     | len -> (
@@ -231,7 +237,7 @@ and unpackArgs (tbl: (string,float)Stdlib.Hashtbl.t) (params: string list) (el: 
         | _ -> (
             let x,ss1 = evalExpr (List.hd el) ss fs in
             Stdlib.Hashtbl.add tbl (List.hd params) x;
-            unpackArgs tbl (List.tl params) (List.tl el) ss1 fs
+            unpack_args tbl (List.tl params) (List.tl el) ss1 fs
         )
     )
     | _ -> raise(Failure "Invalid number of arguments to custom function.")
@@ -257,41 +263,51 @@ and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns 
                 ss1,fs
         )
         | If(e,blkT,blkF) -> (
-            let flt,ss1 = evalExpr e ss fs in
-                match bool_of_float(flt) with
-                    | true -> evalBlock blkT ss1 fs
-                    | false -> evalBlock blkF ss1 fs
+            match contains_fxndef blkT || contains_fxndef blkF with
+                | true -> raise(Failure "Error defining function in if/else.")
+                | false -> (
+                    let flt,ss1 = evalExpr e ss fs in
+                        match bool_of_float(flt) with
+                            | true -> evalBlock blkT ss1 fs
+                            | false -> evalBlock blkF ss1 fs
+                )
         )
         | While(cond,blk) -> (
-            (* TODO fxns CANNOT be defined here *)
-            let ssr = ref ss in
-                let res,_ = (evalExpr cond !ssr fs) in
-                    let resr = ref res in
-                        while bool_of_float(!resr) do
-                            let ss2,_ = evalBlock blk !ssr fs in
-                                ssr := ss2;
-                                let res2,ss3 = (evalExpr cond !ssr fs) in
-                                    resr := res2;
-                                    ssr := ss3;
-                        done;
-                        !ssr,fs
+            match contains_fxndef blk with
+                | true -> raise(Failure "Error defining function in while.")
+                | false -> (
+                    let ssr = ref ss in
+                        let res,_ = (evalExpr cond !ssr fs) in
+                            let resr = ref res in
+                                while bool_of_float(!resr) do
+                                    let ss2,_ = evalBlock blk !ssr fs in
+                                        ssr := ss2;
+                                        let res2,ss3 = (evalExpr cond !ssr fs) in
+                                            resr := res2;
+                                            ssr := ss3;
+                                done;
+                                !ssr,fs
+                )
         )
         | For(init,cond,upd,blk) -> (
-            (* TODO fxns CANNOT be defined here *)
-            let _,ss2 = evalExpr init ss fs in
-            let ssr = ref ss2 in (* a mutable scope stack for use throughout the loop *)
-                let res,_ = (evalExpr cond !ssr fs) in
-                    let resr = ref res in (* a mutable condition result for the loop *)
-                        while bool_of_float(!resr) do
-                            let ss3,_ = evalBlock blk !ssr fs in
-                                ssr := ss3;
-                                let res2,ss4 = (evalExpr cond !ssr fs) in
-                                    resr := res2;
-                                    ssr := ss4;
-                                    let _,ss5 = (evalExpr upd !ssr fs) in
-                                        ssr := ss5;
-                        done;
-                        !ssr,fs
+            match contains_fxndef blk with
+                | true -> raise(Failure "Error defining function in for.")
+                | false -> (
+                    let _,ss2 = evalExpr init ss fs in
+                    let ssr = ref ss2 in (* a mutable scope stack for use throughout the loop *)
+                        let res,_ = (evalExpr cond !ssr fs) in
+                            let resr = ref res in (* a mutable condition result for the loop *)
+                                while bool_of_float(!resr) do
+                                    let ss3,_ = evalBlock blk !ssr fs in
+                                        ssr := ss3;
+                                        let res2,ss4 = (evalExpr cond !ssr fs) in
+                                            resr := res2;
+                                            ssr := ss4;
+                                            let _,ss5 = (evalExpr upd !ssr fs) in
+                                                ssr := ss5;
+                                done;
+                                !ssr,fs
+                )
         )
         | FDef(f,params,blk) -> (
             match List.length ss with
