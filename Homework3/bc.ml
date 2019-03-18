@@ -312,52 +312,63 @@ and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns 
                 )
         )
         | While(cond,blk) -> (
-            (* TODO catch continue *)
             match contains_fxndef blk with
                 | true -> raise(Failure "Error defining function in while.")
                 | false -> (
-                    let ssr = ref ss in
-                        let res,_ = (evalExpr cond !ssr fs) in
-                            let resr = ref res in
-                                while bool_of_float(!resr) do
-                                    let ss2,_ = evalBlock blk !ssr fs in
-                                        ssr := ss2;
-                                        let res2,ss3 = (evalExpr cond !ssr fs) in
-                                            resr := res2;
-                                            ssr := ss3;
-                                done;
-                                !ssr,fs
+                    try
+                        let ssr = ref ss in
+                            let res,_ = (evalExpr cond !ssr fs) in
+                                let resr = ref res in
+                                    while bool_of_float(!resr) do
+                                        let ss2,_ = evalBlock blk !ssr fs in
+                                            ssr := ss2;
+                                            let res2,ss3 = (evalExpr cond !ssr fs) in
+                                                resr := res2;
+                                                ssr := ss3;
+                                    done;
+                                    !ssr,fs
+                    with BreakInProgress(ss) -> ss,fs
                 )
         )
         | For(init,cond,upd,blk) -> (
-            (* TODO catch break and continue *)
             match contains_fxndef blk with
                 | true -> raise(Failure "Error defining function in for.")
                 | false -> (
-                    let _,ss2 = evalExpr init ss fs in
-                    let ssr = ref ss2 in (* a mutable scope stack for use throughout the loop *)
-                        let res,_ = (evalExpr cond !ssr fs) in
-                            let resr = ref res in (* a mutable condition result for the loop *)
-                                while bool_of_float(!resr) do
-                                    let ss3,_ = evalBlock blk !ssr fs in
-                                        ssr := ss3;
-                                        let res2,ss4 = (evalExpr cond !ssr fs) in
-                                            resr := res2;
-                                            ssr := ss4;
-                                            let _,ss5 = (evalExpr upd !ssr fs) in
-                                                ssr := ss5;
-                                done;
-                                !ssr,fs
+                    try 
+                        let _,ss2 = evalExpr init ss fs in
+                        let ssr = ref ss2 in (* a mutable scope stack for use throughout the loop *)
+                            let res,_ = (evalExpr cond !ssr fs) in
+                                let resr = ref res in (* a mutable condition result for the loop *)
+                                    while bool_of_float(!resr) do
+                                        try
+                                            let ss3,_ = evalBlock blk !ssr fs in
+                                                ssr := ss3;
+                                                let res2,ss4 = (evalExpr cond !ssr fs) in
+                                                    resr := res2;
+                                                    ssr := ss4;
+                                                    let _,ss5 = (evalExpr upd !ssr fs) in
+                                                        ssr := ss5;
+                                        with ContinueInProgress(ss1) ->
+                                            (* update ssr and eval the update condition again *)
+                                            let _,ss6 = (evalExpr upd ss1 fs) in
+                                                ssr := ss6;
+                                    done;
+                                    !ssr,fs
+                    with BreakInProgress(ss1) -> ss1,fs
                 )
         )
         | FDef(f,params,blk) -> (
-            match List.length ss with
-                | 0 -> raise(Failure("Global scope not defined."))
-                | 1 ->
-                        let newFxnDef = { name=f; blk=blk; params=params } in
-                            (Stdlib.Hashtbl.replace fs f newFxnDef);
-                            ss,fs
-                | _ -> raise(Failure("Function definition not in the global scope."))
+            match contains_fxndef blk with
+            | true -> raise(Failure "Error defining function in \"define function\" statement.")
+            | false -> (
+                match List.length ss with
+                    | 0 -> raise(Failure("Global scope not defined."))
+                    | 1 ->
+                            let newFxnDef = { name=f; blk=blk; params=params } in
+                                (Stdlib.Hashtbl.replace fs f newFxnDef);
+                                ss,fs
+                    | _ -> raise(Failure("Function definition not in the global scope."))
+            )
         )
         | Return(e) ->
             let res,ss1 = (evalExpr e ss fs) in
