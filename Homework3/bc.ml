@@ -39,7 +39,7 @@ type statement = (* a line of code *)
     | Return   of expr
     | Break    of unit
     | Continue of unit
-    | Print    of printElement list 
+    | Print    of printElement list
 
 type block = (* a block of code *)
     statement list
@@ -477,12 +477,12 @@ let%expect_test "p3" =
 
 (* ------------------------------ test 3 ------------------------------ *)
 
-let%expect_test "bool_of_float and float_of_bool" =
+let%expect_test "bool_of_float-float_of_bool" =
     let ab, bb, cb = bool_of_float(-.1.), bool_of_float(0.), bool_of_float(1.) in
-        let af, bf = float_of_bool(true), float_of_bool(false) in
-            ab |> printf "%B "; bb |> printf "%B "; cb |> printf "%B ";
-            af |> printf "%F "; bf |> printf "%F ";
-            [%expect {| true false true 1. 0. |}]
+    let af, bf = float_of_bool(true), float_of_bool(false) in
+    ab |> printf "%B "; bb |> printf "%B "; cb |> printf "%B ";
+    af |> printf "%F "; bf |> printf "%F ";
+    [%expect {| true false true 1. 0. |}]
 
 let%expect_test "contains_fxndef" =
     let p_no_fdef: block = [ Expr(Assign("v",Num(1.0))) ] in
@@ -497,3 +497,23 @@ let%expect_test "contains_fxndef" =
     contains_fxndef p_fdef_x |> printf "%B ";
     contains_fxndef p_x_fdef_x |> printf "%B ";
     [%expect {| false true true true true |}]
+
+let%expect_test "evalVar" =
+    let ss = [] in
+    let global_ht = Stdlib.Hashtbl.create 10 in
+        Stdlib.Hashtbl.add global_ht "x" 1.;
+        Stdlib.Hashtbl.add global_ht "z" 2.;
+    let local_ht = Stdlib.Hashtbl.create 10 in
+        Stdlib.Hashtbl.add local_ht "y" 3.;
+        Stdlib.Hashtbl.add local_ht "z" 4.;
+    try ignore(evalVar "" ss)
+    with Failure(_) -> printf "fail ";
+    let ss1 = ss@[global_ht] in
+        evalVar "x" ss1 |> printf "%F ";
+        evalVar "y" ss1 |> printf "%F ";
+        evalVar "z" ss1 |> printf "%F ";
+    let ss2 = ss1@[local_ht] in
+        evalVar "x" ss2 |> printf "%F ";
+        evalVar "y" ss2 |> printf "%F ";
+        evalVar "z" ss2 |> printf "%F ";
+    [%expect {| fail 1. 0. 2. 1. 3. 4. |}]
