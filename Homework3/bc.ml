@@ -110,7 +110,7 @@ let rec evalExpr (e: expr) (ss: scopeStack) (fs: fxns) (* : (float,scopeStack) *
         | "!" -> let v,ss1 = evalExpr ex ss fs in float_of_bool(not(bool_of_float(v))),ss1
         | "++a" -> (
             match ex with
-            | Var(vName) -> 
+            | Var(vName) ->
                 let res = (evalVar vName ss) in
                     Stdlib.Hashtbl.replace (List.nth ss (List.length ss-1)) vName (res+.1.);
                     (res+.1.),ss
@@ -408,7 +408,7 @@ let runCode(blk: block): unit =
 (* ------------------------------ test 0 ------------------------------ *)
 (* provided, adapted to new interface *)
 let%expect_test "evalNum" =
-    let flt,_ = evalExpr (Num 10.0) [Stdlib.Hashtbl.create 10] (Stdlib.Hashtbl.create 10) in
+    let flt,_ = evalExpr (Num 10.) [Stdlib.Hashtbl.create 10] (Stdlib.Hashtbl.create 10) in
     flt |>
     printf "%F";
     [%expect {| 10. |}]
@@ -422,7 +422,7 @@ v
 *)
 let%expect_test "p1" =
     let p1: block = [
-        Assign("v",Num(1.0));
+        Assign("v",Num(1.));
         Expr(Var("v"))
     ] in
     runCode p1 [Stdlib.Hashtbl.create 10] (Stdlib.Hashtbl.create 10);
@@ -431,20 +431,20 @@ let%expect_test "p1" =
 (* ------------------------------ test 2 ------------------------------ *)
 (* provided, adapted to new interface *)
 (* Sample Program 2
-v = 1.0;
-if (v>10.0)
-  v = v + 1.0
+v = 1.;
+if (v>10.)
+  v = v + 1.
 else
-  for(i=2.0; i<10.0; i++)
+  for(i=2.; i<10.; i++)
     v = v * i
 v
 *)
 let%expect_test "p1" =
     let p2: block = [
-        Assign("v",Num(1.0));
-        If(Op2(">",Var("v"),Num(10.0)),
-            [Assign("v",Op2("+",Var("v"),Num(1.0)))],
-            [For(Assign("i",Num(2.0)),Op2("<",Var("i"),Num(10.0)),Expr(Op1("++a",Var("i"))),
+        Assign("v",Num(1.));
+        If(Op2(">",Var("v"),Num(10.)),
+            [Assign("v",Op2("+",Var("v"),Num(1.)))],
+            [For(Assign("i",Num(2.)),Op2("<",Var("i"),Num(10.)),Expr(Op1("++a",Var("i"))),
             [Assign("v",Op2("*",Var("v"),Var("i")))]
             )]
         );
@@ -457,8 +457,8 @@ let%expect_test "p1" =
 (* provided, adapted to new interface *)
 (* Fibbonaci Sequence
 define f(x) {
-    if (x<1.0)
-        return (1.0)
+    if (x<1.)
+        return (1.)
     else
         return (f(x-1)+f(x-2))
 }
@@ -468,24 +468,24 @@ f(5)
 let%expect_test "p3" =
     let p3: block = [
     FDef("f",["x"],[
-        If(Op2("<",Var("x"),Num(1.0)),
-        [Return(Num(1.0))],
+        If(Op2("<",Var("x"),Num(1.)),
+        [Return(Num(1.))],
         [Return(
             Op2("+",
-            FCall("f",[Op2("-",Var("x"),Num(1.0))]),
-            FCall("f",[Op2("-",Var("x"),Num(1.0))])
+            FCall("f",[Op2("-",Var("x"),Num(1.))]),
+            FCall("f",[Op2("-",Var("x"),Num(1.))])
             )
         )]
         )]
     );
-    Expr(FCall("f",[Num(3.0)]));
-    Expr(FCall("f",[Num(5.0)]));
+    Expr(FCall("f",[Num(3.)]));
+    Expr(FCall("f",[Num(5.)]));
     ] in
     runCode p3 [];
     [%expect {| 2. 5. |}]
 *)
 
-(* ------------------------------ test 3 ------------------------------ *)
+(* ------------------------- custom unit tests ------------------------- *)
 
 let%expect_test "bool_of_float-float_of_bool" =
     let ab, bb, cb = bool_of_float(-.1.), bool_of_float(0.), bool_of_float(1.) in
@@ -495,12 +495,12 @@ let%expect_test "bool_of_float-float_of_bool" =
     [%expect {| true false true 1. 0. |}]
 
 let%expect_test "contains_fxndef" =
-    let p_no_fdef: block = [ Expr(Assign("v",Num(1.0))) ] in
+    let p_no_fdef: block = [ Expr(Assign("v",Num(1.))) ] in
     let p_fdef: block = [ FDef("",[],[]) ] in
-    let p_x_fdef: block = [ Expr(Assign("v",Num(1.0))); FDef("",[],[]) ] in
-    let p_fdef_x: block = [ FDef("",[],[]); Expr(Assign("v",Num(1.0))) ] in
+    let p_x_fdef: block = [ Expr(Assign("v",Num(1.))); FDef("",[],[]) ] in
+    let p_fdef_x: block = [ FDef("",[],[]); Expr(Assign("v",Num(1.))) ] in
     let p_x_fdef_x: block =
-        [ Expr(Assign("v",Num(1.0))); FDef("",[],[]); Expr(Assign("v",Num(1.0))); ] in
+        [ Expr(Assign("v",Num(1.))); FDef("",[],[]); Expr(Assign("v",Num(1.))); ] in
     contains_fxndef p_no_fdef |> printf "%B ";
     contains_fxndef p_fdef |> printf "%B ";
     contains_fxndef p_x_fdef |> printf "%B ";
@@ -534,3 +534,26 @@ let%expect_test "evalVar" =
         evalVar "y" ss3 |> printf "%F ";
         evalVar "z" ss3 |> printf "%F ";
     [%expect {| fail 1. 2. 0. 3. 2. 4. 1. 5. 6. |}]
+
+let%expect_test "runCode" =
+    let p_ret: block = [ Return(None()) ] in
+    try runCode p_ret;
+    with Failure(s) -> (
+        s |> printf "%S\n";
+        [%expect {|"Return from main program."|}];
+    );
+    let p_break: block = [ Break() ] in
+    try runCode p_break;
+    with Failure(s) -> (
+        s |> printf "%S\n";
+        [%expect {|"Break outside a for/while."|}];
+    );
+    let p_cont: block = [ Continue() ] in
+    try runCode p_cont;
+    with Failure(s) -> (
+        s |> printf "%S\n";
+        [%expect {|"Continue outside a for."|}];
+    );
+    let p_1: block = [ Expr(Num(1.)) ] in
+    runCode p_1;
+    [%expect {| 1. |}]
