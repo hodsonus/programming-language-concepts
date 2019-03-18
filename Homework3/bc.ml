@@ -8,6 +8,13 @@ how to handle mod
 how to read command line input
 how to enforce return type of tuple
 why are our tests not working
+for loop definition is actually expr expr expr
+*)
+
+(*
+TODO AT END
+Write tests
+Check to make sure input to fxns is the correct state
 *)
 
 (* ============================== types ============================== *)
@@ -25,7 +32,7 @@ type statement = (* a line of code *)
     | Expr     of expr
     | If       of expr*statement list*statement list
     | While    of expr*statement list
-    | For      of statement*expr*statement*statement list
+    | For      of expr*expr*expr*statement list
     | FDef     of string*string list*statement list
     | Return   of expr
     | Break    of unit
@@ -230,7 +237,7 @@ and unpackArgs (tbl: (string,float)Hashtbl.t) (params: string list) (el: expr li
     )
     | _ -> raise(Failure "Invalid number of arguments to custom function.")
 
-(*  *)
+(* takes a list of statements and evaluates them (global or function scope), returns new state *)
 and evalBlock (blk: block) (ss: scopeStack) (fs: fxns) (* : scopeStack,fxns *) =
     match blk with
         | [] -> ss,fs
@@ -239,7 +246,7 @@ and evalBlock (blk: block) (ss: scopeStack) (fs: fxns) (* : scopeStack,fxns *) =
                 evalBlock rest ss1 fs1
         )
 
-(* TODO *)
+(* evaluates a single statement and updates the state *)
 and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns *) =
     match s with
         | Expr(e) -> (
@@ -253,20 +260,48 @@ and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns 
         | If(e,blkT,blkF) -> (
             let flt,ss1 = evalExpr e ss fs in
                 match bool_of_float(flt) with
-                    | true -> evalBlock blkT ss fs
-                    | false -> evalBlock blkF ss fs
+                    | true -> evalBlock blkT ss1 fs
+                    | false -> evalBlock blkF ss1 fs
         )
-        | While(e,blk) -> ss,fs (* TODO make sure in global scope*)
-        | For(init,cond,term,blk) -> ss,fs (* TODO make sure in global scope*)
+        | While(cond,blk) -> (
+            (* TODO fxns CANNOT be defined here *)
+            let ssr = ref ss in
+                let res,_ = (evalExpr cond !ssr fs) in
+                    let resr = ref res in
+                        while bool_of_float(!resr) do
+                            let ss2,_ = evalBlock blk !ssr fs in
+                                ssr := ss2;
+                                let res2,ss3 = (evalExpr cond !ssr fs) in
+                                    resr := res2;
+                                    ssr := ss3;
+                        done;
+                        !ssr,fs
+        )
+        | For(init,cond,upd,blk) -> (
+            (* TODO fxns CANNOT be defined here *)
+            let _,ss2 = evalExpr init ss fs in
+            let ssr = ref ss2 in (* a mutable scope stack for use throughout the loop *)
+                let res,_ = (evalExpr cond !ssr fs) in
+                    let resr = ref res in (* a mutable condition result for the loop *)
+                        while bool_of_float(!resr) do
+                            let ss3,_ = evalBlock blk !ssr fs in
+                                ssr := ss3;
+                                let res2,ss4 = (evalExpr cond !ssr fs) in
+                                    resr := res2;
+                                    ssr := ss4;
+                                    let _,ss5 = (evalExpr upd !ssr fs) in
+                                        ssr := ss5;
+                        done;
+                        !ssr,fs
+        )
         | FDef(f,params,blk) -> ss,fs (* TODO make sure in global scope*)
         | Return(e) ->
             let res,ss1 = (evalExpr e ss fs) in
                 raise(ReturnInProgress(res,ss1))
         | Break() -> raise(BreakInProgress(ss))
         | Continue() -> raise(ContinueInProgress(ss))
-        | _ -> ss,fs (* TODO ignore *)
 
-(* TODO *)
+(* primes and performs initial function call to eval program *)
 let runCode(blk: block): unit =
     try ignore(evalBlock blk [Hashtbl.create 10] (Hashtbl.create 10)); ()
     with
