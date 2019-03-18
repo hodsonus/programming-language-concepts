@@ -26,6 +26,10 @@ type expr = (* a fragment of code *)
     | FCall  of string*expr list
     | None   of unit
 
+type printElement =
+    | String of string
+    | Expr of expr
+
 type statement = (* a line of code *)
     | Expr     of expr
     | If       of expr*statement list*statement list
@@ -35,6 +39,7 @@ type statement = (* a line of code *)
     | Return   of expr
     | Break    of unit
     | Continue of unit
+    | Print    of printElement list 
 
 type block = (* a block of code *)
     statement list
@@ -359,6 +364,26 @@ and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns 
                 raise(ReturnInProgress(res,ss1))
         | Break() -> raise(BreakInProgress(ss))
         | Continue() -> raise(ContinueInProgress(ss))
+        | Print(elements) -> (print_printElement_list elements ss fs),fs
+
+and print_printElement_list (elements: printElement list) (ss: scopeStack) (fs: fxns): scopeStack = 
+    match elements with
+    | hd::tl -> 
+        let ss1 = print_printElement hd ss fs in
+            print_printElement_list tl ss1 fs
+    | [] -> ss
+
+and print_printElement (element: printElement) (ss: scopeStack) (fs: fxns): scopeStack =
+    match element with
+    | String(str) -> (
+        Stdlib.print_string str;
+        ss
+    )
+    | Expr(e) -> ( 
+        let res,ss1 = (evalExpr e ss fs) in
+            Stdlib.print_float res;
+            ss1
+    )
 
 (* primes and performs initial function call to eval program *)
 let runCode(blk: block): unit =
@@ -375,7 +400,6 @@ let%expect_test "sample" =
     printf "%F";
     [%expect {| 10. |}]
 
-(*
 (* ------------------------------ test 0 ------------------------------ *)
 (* let%expect_test "evalNum" =
   10. |>
