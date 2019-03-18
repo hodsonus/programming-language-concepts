@@ -39,6 +39,7 @@ type statement = (* a line of code *)
     | Break    of unit
     | Continue of unit
     | Print    of printElement list
+    | String   of string
 
 type block = (* a block of code *)
     statement list
@@ -377,6 +378,7 @@ and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns 
         | Break() -> raise(BreakInProgress(ss))
         | Continue() -> raise(ContinueInProgress(ss))
         | Print(elements) -> (print_printElement_list elements ss fs),fs
+        | String(str) -> print_string str; ss,fs
 
 and print_printElement_list (elements: printElement list) (ss: scopeStack) (fs: fxns): scopeStack = 
     match elements with
