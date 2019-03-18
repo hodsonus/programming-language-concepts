@@ -3,7 +3,7 @@ open Stdlib
 
 (*
 why environment queue and not stack
-how to handle pre/post inc/dec ops
+how to handle pre/post inc/dec ops TODO - a++, a--, --a, ++a
 how to read command line input
 how to enforce return type of tuple
 why are our tests not working
@@ -276,6 +276,7 @@ and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns 
                 )
         )
         | While(cond,blk) -> (
+            (* TODO catch continue *)
             match contains_fxndef blk with
                 | true -> raise(Failure "Error defining function in while.")
                 | false -> (
@@ -293,6 +294,7 @@ and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns 
                 )
         )
         | For(init,cond,upd,blk) -> (
+            (* TODO catch break and continue *)
             match contains_fxndef blk with
                 | true -> raise(Failure "Error defining function in for.")
                 | false -> (
@@ -345,7 +347,7 @@ let%expect_test "sample" =
 (*
 (* ------------------------------ test 0 ------------------------------ *)
 let%expect_test "evalNum" =
-  evalExpr (Num 10.0) [] |>
+  evalExpr (Num 10.0)  |>
   printf "%F";
   [%expect {| 10. |}]
 
@@ -359,7 +361,7 @@ let p1: block = [
   Expr(Var("v"))
 ]
 let%expect_test "p1" =
-  runCode p1 [];
+  runCode p1 [Stdlib.Hashtbl.create 10] (Stdlib.Hashtbl.create 10);
   [%expect {| 1. |}]
 
 (* ------------------------------ test 2 ------------------------------ *)
@@ -414,4 +416,4 @@ let p3: block = [
 ]
 let%expect_test "p3" =
   runCode p3 [];
-  [%expect {| 2. 5. |}] *)
+  [%expect {| 2. 5. |}]
