@@ -3,7 +3,6 @@ open Stdlib
 
 (*
 why environment queue and not stack
-how to handle pre/post inc/dec ops TODO - a++, a--, --a, ++a
 how to read command line input
 how to enforce return type of tuple
 why are our tests not working
@@ -27,6 +26,10 @@ type expr = (* a fragment of code *)
     | FCall  of string*expr list
     | None   of unit
 
+type printElement =
+    | String of string
+    | Expr of expr
+
 type statement = (* a line of code *)
     | Expr     of expr
     | If       of expr*statement list*statement list
@@ -36,6 +39,7 @@ type statement = (* a line of code *)
     | Return   of expr
     | Break    of unit
     | Continue of unit
+    | Print    of printElement list 
 
 type block = (* a block of code *)
     statement list
@@ -105,6 +109,38 @@ let rec evalExpr (e: expr) (ss: scopeStack) (fs: fxns) (* : (float,scopeStack) *
         match op with
         | "-" -> let v,ss1 = evalExpr ex ss fs in -.v,ss1
         | "!" -> let v,ss1 = evalExpr ex ss fs in float_of_bool(not(bool_of_float(v))),ss1
+        | "++a" -> (
+            match ex with
+            | Var(vName) -> 
+                let res = (evalVar vName ss) in
+                    Stdlib.Hashtbl.replace (List.nth ss (List.length ss-1)) vName (res+.1.);
+                    (res+.1.),ss
+            | _ -> raise(Failure ("Operator " ^ op ^ "cannot be applied to the given expression."))
+        )
+        | "--a" -> (
+            match ex with
+            | Var(vName) -> 
+                let res = (evalVar vName ss) in
+                    Stdlib.Hashtbl.replace (List.nth ss (List.length ss-1)) vName (res-.1.);
+                    (res-.1.),ss
+            | _ -> raise(Failure ("Operator " ^ op ^ "cannot be applied to the given expression."))
+        )
+        | "a++" -> (
+            match ex with
+            | Var(vName) -> 
+                let res = (evalVar vName ss) in
+                    Stdlib.Hashtbl.replace (List.nth ss (List.length ss-1)) vName (res+.1.);
+                    res,ss
+            | _ -> raise(Failure ("Operator " ^ op ^ "cannot be applied to the given expression."))
+        )
+        | "a--" -> (
+            match ex with
+            | Var(vName) -> 
+                let res = (evalVar vName ss) in
+                    Stdlib.Hashtbl.replace (List.nth ss (List.length ss-1)) vName (res-.1.);
+                    res,ss
+            | _ -> raise(Failure ("Operator " ^ op ^ "cannot be applied to the given expression."))
+        )
         | _   -> raise(Failure ("Unknown unary operator `" ^ op ^ "`."))
         )
     | Op2(op,expr1,expr2) -> (
@@ -328,6 +364,26 @@ and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns 
                 raise(ReturnInProgress(res,ss1))
         | Break() -> raise(BreakInProgress(ss))
         | Continue() -> raise(ContinueInProgress(ss))
+        | Print(elements) -> (print_printElement_list elements ss fs),fs
+
+and print_printElement_list (elements: printElement list) (ss: scopeStack) (fs: fxns): scopeStack = 
+    match elements with
+    | hd::tl -> 
+        let ss1 = print_printElement hd ss fs in
+            print_printElement_list tl ss1 fs
+    | [] -> ss
+
+and print_printElement (element: printElement) (ss: scopeStack) (fs: fxns): scopeStack =
+    match element with
+    | String(str) -> (
+        Stdlib.print_string str;
+        ss
+    )
+    | Expr(e) -> ( 
+        let res,ss1 = (evalExpr e ss fs) in
+            Stdlib.print_float res;
+            ss1
+    )
 
 (* primes and performs initial function call to eval program *)
 let runCode(blk: block): unit =
