@@ -28,7 +28,7 @@ type expr = (* a fragment of code *)
 
 type printElement =
     | String of string
-    | Expr of expr
+    | Expr   of expr
 
 type statement = (* a line of code *)
     | Expr     of expr
@@ -119,7 +119,7 @@ let rec evalExpr (e: expr) (ss: scopeStack) (fs: fxns) (* : (float,scopeStack) *
         )
         | "--a" -> (
             match ex with
-            | Var(vName) -> 
+            | Var(vName) ->
                 let res = (evalVar vName ss) in
                     Stdlib.Hashtbl.replace (List.nth ss (List.length ss-1)) vName (res-.1.);
                     (res-.1.),ss
@@ -127,7 +127,7 @@ let rec evalExpr (e: expr) (ss: scopeStack) (fs: fxns) (* : (float,scopeStack) *
         )
         | "a++" -> (
             match ex with
-            | Var(vName) -> 
+            | Var(vName) ->
                 let res = (evalVar vName ss) in
                     Stdlib.Hashtbl.replace (List.nth ss (List.length ss-1)) vName (res+.1.);
                     res,ss
@@ -135,7 +135,7 @@ let rec evalExpr (e: expr) (ss: scopeStack) (fs: fxns) (* : (float,scopeStack) *
         )
         | "a--" -> (
             match ex with
-            | Var(vName) -> 
+            | Var(vName) ->
                 let res = (evalVar vName ss) in
                     Stdlib.Hashtbl.replace (List.nth ss (List.length ss-1)) vName (res-.1.);
                     res,ss
@@ -334,7 +334,7 @@ and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns 
             match contains_fxndef blk with
                 | true -> raise(Failure "Error defining function in for.")
                 | false -> (
-                    try 
+                    try
                         let _,ss2 = evalExpr init ss fs in
                         let ssr = ref ss2 in (* a mutable scope stack for use throughout the loop *)
                             let res,_ = (evalExpr cond !ssr fs) in
@@ -379,7 +379,7 @@ and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns 
 
 and print_printElement_list (elements: printElement list) (ss: scopeStack) (fs: fxns): scopeStack = 
     match elements with
-    | hd::tl -> 
+    | hd::tl ->
         let ss1 = print_printElement hd ss fs in
             print_printElement_list tl ss1 fs
     | [] -> ss
@@ -390,7 +390,7 @@ and print_printElement (element: printElement) (ss: scopeStack) (fs: fxns): scop
         Stdlib.print_string str;
         ss
     )
-    | Expr(e) -> ( 
+    | Expr(e) -> (
         let res,ss1 = (evalExpr e ss fs) in
             Stdlib.print_float res;
             ss1
@@ -513,18 +513,25 @@ let%expect_test "evalVar" =
     let ss = [] in
     let global_ht = Stdlib.Hashtbl.create 10 in
         Stdlib.Hashtbl.add global_ht "x" 1.;
-        Stdlib.Hashtbl.add global_ht "z" 2.;
-    let local_ht = Stdlib.Hashtbl.create 10 in
-        Stdlib.Hashtbl.add local_ht "y" 3.;
-        Stdlib.Hashtbl.add local_ht "z" 4.;
+        Stdlib.Hashtbl.add global_ht "y" 2.;
+    let mid_ht = Stdlib.Hashtbl.create 10 in
+        Stdlib.Hashtbl.add mid_ht "x" 3.;
+        Stdlib.Hashtbl.add mid_ht "z" 4.;
+    let top_ht = Stdlib.Hashtbl.create 10 in
+        Stdlib.Hashtbl.add top_ht "y" 5.;
+        Stdlib.Hashtbl.add top_ht "z" 6.;
     try ignore(evalVar "" ss)
     with Failure(_) -> printf "fail ";
     let ss1 = ss@[global_ht] in
         evalVar "x" ss1 |> printf "%F ";
         evalVar "y" ss1 |> printf "%F ";
         evalVar "z" ss1 |> printf "%F ";
-    let ss2 = ss1@[local_ht] in
+    let ss2 = ss1@[mid_ht] in
         evalVar "x" ss2 |> printf "%F ";
         evalVar "y" ss2 |> printf "%F ";
         evalVar "z" ss2 |> printf "%F ";
-    [%expect {| fail 1. 0. 2. 1. 3. 4. |}]
+    let ss3 = ss2@[top_ht] in
+        evalVar "x" ss3 |> printf "%F ";
+        evalVar "y" ss3 |> printf "%F ";
+        evalVar "z" ss3 |> printf "%F ";
+    [%expect {| fail 1. 2. 0. 3. 2. 4. 1. 5. 6. |}]
