@@ -35,7 +35,7 @@ type statement = (* a line of code *)
     | If       of expr*statement list*statement list
     | While    of expr*statement list
     | For      of expr*expr*expr*statement list
-    | FDef     of string*string list*statement list (* TODO check for function defs *)
+    | FDef     of string*string list*statement list
     | Return   of expr
     | Break    of unit
     | Continue of unit
