@@ -12,6 +12,10 @@ if statement in test had a condition of "true"
 TODO AT END
 Write tests
 Check to make sure input to fxns is the correct state
+
+README
+type xxx must not be wrapped in Expr
+
 *)
 
 (* ============================== types ============================== *)
@@ -381,7 +385,7 @@ and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns 
         | Print(elements) -> (print_printElement_list elements ss fs),fs
         | String(str) -> print_string str; ss,fs
 
-and print_printElement_list (elements: printElement list) (ss: scopeStack) (fs: fxns): scopeStack = 
+and print_printElement_list (elements: printElement list) (ss: scopeStack) (fs: fxns): scopeStack =
     match elements with
     | hd::tl ->
         let ss1 = print_printElement hd ss fs in
@@ -391,13 +395,11 @@ and print_printElement_list (elements: printElement list) (ss: scopeStack) (fs: 
 and print_printElement (element: printElement) (ss: scopeStack) (fs: fxns): scopeStack =
     match element with
     | String(str) -> (
-        Stdlib.print_string str;
-        ss
+        Stdlib.print_string str; ss
     )
     | Expr(e) -> (
         let res,ss1 = (evalExpr e ss fs) in
-            Stdlib.print_float res;
-            ss1
+            Stdlib.print_float res; ss1
     )
 
 (* primes and performs initial function call to eval program *)
@@ -418,77 +420,81 @@ let%expect_test "evalNum" =
     printf "%F";
     [%expect {| 10. |}]
 
-(*
 (* ------------------------------ test 1 ------------------------------ *)
 (* provided, adapted to new interface *)
 (* Sample Program 1
-v = 10;
-v
+    v = 10;
+    v
 *)
 let%expect_test "p1" =
-    let p1: block = [
-        Assign("v",Num(1.));
-        Expr(Var("v"))
-    ] in
-    runCode p1 [Stdlib.Hashtbl.create 10] (Stdlib.Hashtbl.create 10);
-    [%expect {| 1. |}]
+    let p1: block =
+        [ Expr(Assign("v",Num(1.))); Expr(Var("v")) ] in
+            runCode p1;
+            [%expect {| 1. |}]
 
 (* ------------------------------ test 2 ------------------------------ *)
 (* provided, adapted to new interface *)
 (* Sample Program 2
-v = 1.;
-if (v>10.)
-  v = v + 1.
-else
-  for(i=2.; i<10.; i++)
-    v = v * i
-v
+    v = 1.;
+    if (v>10.)
+    v = v + 1.
+    else
+    for(i=2.; i<10.; i++)
+        v = v * i
+    v
 *)
 let%expect_test "p1" =
     let p2: block = [
-        Assign("v",Num(1.));
+        Expr(Assign("v",Num(1.)));
         If(Op2(">",Var("v"),Num(10.)),
-            [Assign("v",Op2("+",Var("v"),Num(1.)))],
-            [For(Assign("i",Num(2.)),Op2("<",Var("i"),Num(10.)),Expr(Op1("++a",Var("i"))),
-            [Assign("v",Op2("*",Var("v"),Var("i")))]
+            [Expr(Assign("v",Op2("+",Var("v"),Num(1.))))],
+            [For(
+                Assign("i",Num(2.)),
+                Op2("<",Var("i"),Num(10.)),
+                Op1("++a",Var("i")),
+                    [Expr(Assign("v",Op2("*",Var("v"),Var("i"))))]
             )]
         );
         Expr(Var("v"))
     ] in
-    runCode p2 [];
+    (runCode p2);
     [%expect {| 3628800. |}]
 
 (* ------------------------------ test 3 ------------------------------ *)
 (* provided, adapted to new interface *)
 (* Fibbonaci Sequence
-define f(x) {
-    if (x<1.)
-        return (1.)
-    else
-        return (f(x-1)+f(x-2))
-}
-f(3)
-f(5)
+    define f(x) {
+        if (x<=1.)
+            return (x)
+        else
+            return (f(x-1)+f(x-2))
+    }
+    f(3)
+    f(5)
 *)
 let%expect_test "p3" =
     let p3: block = [
-    FDef("f",["x"],[
-        If(Op2("<",Var("x"),Num(1.)),
-        [Return(Num(1.))],
-        [Return(
-            Op2("+",
-            FCall("f",[Op2("-",Var("x"),Num(1.))]),
-            FCall("f",[Op2("-",Var("x"),Num(1.))])
-            )
-        )]
-        )]
-    );
-    Expr(FCall("f",[Num(3.)]));
-    Expr(FCall("f",[Num(5.)]));
+        FDef("f",["x"],[
+            If(Op2("<=",Var("x"),Num(1.)),
+            [Return(Var("x"))],
+            [Return(
+                Op2("+",
+                FCall("f",[Op2("-",Var("x"),Num(1.))]),
+                FCall("f",[Op2("-",Var("x"),Num(2.))])
+                )
+            )]
+            )]
+        );
+        Expr(FCall("f",[Num(0.)]));
+        Expr(FCall("f",[Num(1.)]));
+        Expr(FCall("f",[Num(2.)]));
+        Expr(FCall("f",[Num(3.)]));
+        Expr(FCall("f",[Num(4.)]));
+        Expr(FCall("f",[Num(5.)]));
     ] in
-    runCode p3 [];
-    [%expect {| 2. 5. |}]
-*)
+    (runCode p3);
+    [%expect {| 0.1.1.2.3.5. |}]
+
 
 (* ------------------------- custom unit tests ------------------------- *)
 
@@ -504,8 +510,8 @@ let%expect_test "contains_fxndef" =
     let p_fdef: block = [ FDef("",[],[]) ] in
     let p_x_fdef: block = [ Expr(Assign("v",Num(1.))); FDef("",[],[]) ] in
     let p_fdef_x: block = [ FDef("",[],[]); Expr(Assign("v",Num(1.))) ] in
-    let p_x_fdef_x: block =
-        [ Expr(Assign("v",Num(1.))); FDef("",[],[]); Expr(Assign("v",Num(1.))); ] in
+    let p_x_fdef_x: block = [ Expr(Assign("v",Num(1.)));
+        FDef("",[],[]); Expr(Assign("v",Num(1.))); ] in
     contains_fxndef p_no_fdef |> printf "%B ";
     contains_fxndef p_fdef |> printf "%B ";
     contains_fxndef p_x_fdef |> printf "%B ";
@@ -545,19 +551,19 @@ let%expect_test "runCode" =
     try runCode p_ret;
     with Failure(s) -> (
         s |> printf "%S\n";
-        [%expect {|"Return from main program."|}];
+        [%expect {| "Return from main program." |}];
     );
     let p_break: block = [ Break() ] in
     try runCode p_break;
     with Failure(s) -> (
         s |> printf "%S\n";
-        [%expect {|"Break outside a for/while."|}];
+        [%expect {| "Break outside a for/while." |}];
     );
     let p_cont: block = [ Continue() ] in
     try runCode p_cont;
     with Failure(s) -> (
         s |> printf "%S\n";
-        [%expect {|"Continue outside a for."|}];
+        [%expect {| "Continue outside a for." |}];
     );
     let p_1: block = [ Expr(Num(1.)) ] in
     runCode p_1;
