@@ -39,6 +39,7 @@ type statement = (* a line of code *)
     | Break    of unit
     | Continue of unit
     | Print    of printElement list
+    | String   of string
 
 type block = (* a block of code *)
     statement list
@@ -294,11 +295,13 @@ and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns 
     match s with
         | Expr(e) -> (
             let flt,ss1 = evalExpr e ss fs in
-                (* TODO,dont print assignments.
-                maybe return another attribute (a boolean)
-                telling us whether or not to print? *)
-                print_float flt;
-                ss1,fs
+                match e with
+                    | Assign(_,_) ->
+                        ();
+                        ss1,fs
+                    | _ ->
+                        print_float flt;
+                        ss1,fs
         )
         | If(e,blkT,blkF) -> (
             match contains_fxndef blkT || contains_fxndef blkF with
@@ -375,6 +378,7 @@ and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns 
         | Break() -> raise(BreakInProgress(ss))
         | Continue() -> raise(ContinueInProgress(ss))
         | Print(elements) -> (print_printElement_list elements ss fs),fs
+        | String(str) -> print_string str; ss,fs
 
 and print_printElement_list (elements: printElement list) (ss: scopeStack) (fs: fxns): scopeStack = 
     match elements with
