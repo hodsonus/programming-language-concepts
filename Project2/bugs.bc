@@ -1,5 +1,5 @@
-x = read();
-x
+#x = read();
+#x
 
 define e (a, b) {
     while (b != 0) {
@@ -37,4 +37,10 @@ while (x++<100) {
         break;
     }
     print "x: ", x
+}
+
+for (i=0; i < 5; i++) {
+    for (j=0; j < 5; j++) {
+        print i,j
+    }
 }
