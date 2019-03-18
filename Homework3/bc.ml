@@ -294,11 +294,13 @@ and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns 
     match s with
         | Expr(e) -> (
             let flt,ss1 = evalExpr e ss fs in
-                (* TODO,dont print assignments.
-                maybe return another attribute (a boolean)
-                telling us whether or not to print? *)
-                print_float flt;
-                ss1,fs
+                match e with
+                    | Assign(_,_) ->
+                        ();
+                        ss1,fs
+                    | _ ->
+                        print_float flt;
+                        ss1,fs
         )
         | If(e,blkT,blkF) -> (
             match contains_fxndef blkT || contains_fxndef blkF with
