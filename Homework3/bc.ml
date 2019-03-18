@@ -225,7 +225,7 @@ and evalFxn (fxn: fxndef) (el: expr list) (ss: scopeStack) (fs: fxns) (* : (floa
 (* recursively unpacks arguments into a new local scope for initializing function calls *)
 and unpackArgs (tbl: (string,float)Hashtbl.t) (params: string list) (el: expr list) (ss: scopeStack) (fs: fxns) : scopeStack =
     let len = (List.length el) in
-    match List.length params with
+    match (List.length params) with
     | len -> (
         match len with
         | 0 -> ss
@@ -294,7 +294,15 @@ and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns 
                         done;
                         !ssr,fs
         )
-        | FDef(f,params,blk) -> ss,fs (* TODO make sure in global scope*)
+        | FDef(f,params,blk) -> (
+            match List.length ss with
+                | 0 -> raise(Failure("Global scope not defined."))
+                | 1 ->
+                        let newFxnDef = { name=f; blk=blk; params=params } in
+                            (Hashtbl.replace fs f newFxnDef);
+                            ss,fs
+                | _ -> raise(Failure("Function definition not in the global scope."))
+        )
         | Return(e) ->
             let res,ss1 = (evalExpr e ss fs) in
                 raise(ReturnInProgress(res,ss1))
