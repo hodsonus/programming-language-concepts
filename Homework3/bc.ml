@@ -66,7 +66,10 @@ let float_of_bool (value: bool) : float =
 (* checks whether a block contains a function definition *)
 let rec contains_fxndef (blk: block) : bool =
     match blk with
-        | _::tl -> contains_fxndef tl
+        | hd::tl -> (
+            match hd with
+                | FxnDef -> false
+                | _ -> contains_fxndef tl
         | [] -> true
 
 (* performs a variable value lookup given a program state *)
@@ -330,9 +333,15 @@ let runCode(blk: block): unit =
         | BreakInProgress(_) -> raise(Failure "Break outside a for/while.");
         | ContinueInProgress(_) -> raise(Failure "Continue outside a for.");
 
-(*
+
 (* ============================== tests ============================== *)
 
+let%expect_test "evalNum" =
+    evalExpr (Num 10.0) [] |>
+    printf "%F";
+    [%expect {| 10. |}]
+
+(*
 (* ------------------------------ test 0 ------------------------------ *)
 let%expect_test "evalNum" =
   evalExpr (Num 10.0) [] |>
