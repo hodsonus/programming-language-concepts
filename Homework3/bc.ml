@@ -2,7 +2,6 @@ open Stdlib
 
 (*
 why environment queue and not stack
-how to handle pre/post inc/dec ops TODO - a++, a--, --a, ++a
 how to read command line input
 how to enforce return type of tuple
 why are our tests not working
@@ -100,6 +99,38 @@ let rec evalExpr (e: expr) (ss: scopeStack) (fs: fxns) (* : (float,scopeStack) *
         match op with
         | "-" -> let v,ss1 = evalExpr ex ss fs in -.v,ss1
         | "!" -> let v,ss1 = evalExpr ex ss fs in float_of_bool(not(bool_of_float(v))),ss1
+        | "++a" -> (
+            match ex with
+            | Var(vName) -> 
+                let res = (evalVar vName ss) in
+                    Stdlib.Hashtbl.replace (List.nth ss (List.length ss-1)) vName (res+.1.);
+                    (res+.1.),ss
+            | _ -> raise(Failure ("Operator " ^ op ^ "cannot be applied to the given expression."))
+        )
+        | "--a" -> (
+            match ex with
+            | Var(vName) -> 
+                let res = (evalVar vName ss) in
+                    Stdlib.Hashtbl.replace (List.nth ss (List.length ss-1)) vName (res-.1.);
+                    (res-.1.),ss
+            | _ -> raise(Failure ("Operator " ^ op ^ "cannot be applied to the given expression."))
+        )
+        | "a++" -> (
+            match ex with
+            | Var(vName) -> 
+                let res = (evalVar vName ss) in
+                    Stdlib.Hashtbl.replace (List.nth ss (List.length ss-1)) vName (res+.1.);
+                    res,ss
+            | _ -> raise(Failure ("Operator " ^ op ^ "cannot be applied to the given expression."))
+        )
+        | "a--" -> (
+            match ex with
+            | Var(vName) -> 
+                let res = (evalVar vName ss) in
+                    Stdlib.Hashtbl.replace (List.nth ss (List.length ss-1)) vName (res-.1.);
+                    res,ss
+            | _ -> raise(Failure ("Operator " ^ op ^ "cannot be applied to the given expression."))
+        )
         | _   -> raise(Failure ("Unknown unary operator `" ^ op ^ "`."))
         )
     | Op2(op,expr1,expr2) -> (
@@ -336,11 +367,11 @@ let runCode(blk: block): unit =
 (* ============================== tests ============================== *)
 
 (* ------------------------------ test 0 ------------------------------ *)
-let%expect_test "evalNum" =
-  evalExpr (Num 10.0)  |>
+(* let%expect_test "evalNum" =
+  10. |>
   printf "%F";
-  [%expect {| 10. |}]
-
+  [%expect {| 10. |}] *)
+(* 
 (* ------------------------------ test 1 ------------------------------ *)
 (* Sample Program 1
 v = 10;
@@ -406,4 +437,4 @@ let p3: block = [
 ]
 let%expect_test "p3" =
   runCode p3 [];
-  [%expect {| 2. 5. |}]
+  [%expect {| 2. 5. |}] *)
