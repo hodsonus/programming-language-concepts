@@ -3,10 +3,9 @@ open Stdlib
 
 (*
 why environment queue and not stack
-how to read command line input
+
 how to enforce return type of tuple
-why are our tests not working
-for loop definition is actually expr expr expr
+if statement in test had a condition of "true"
 *)
 
 (*
