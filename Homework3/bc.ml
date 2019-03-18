@@ -6,12 +6,12 @@ why environment queue and not stack
 how to handle pre/post inc/dec ops
 how to handle mod
 how to read command line input
-is multiple params better than product type breakdown
+how to enforce return type of tuple
+why are our tests not working
 *)
 
 (* ============================== types ============================== *)
 
-(* eval expr must return flaot,may return new state *)
 type expr = (* a fragment of code *)
     | Num    of float
     | Var    of string
@@ -19,8 +19,8 @@ type expr = (* a fragment of code *)
     | Op2    of string*expr*expr
     | Assign of string*expr
     | FCall  of string*expr list
+    | None   of unit
 
-(* eval statement may return float and new state *)
 type statement = (* a line of code *)
     | Expr     of expr
     | If       of expr*statement list*statement list
@@ -31,13 +31,9 @@ type statement = (* a line of code *)
     | Break    of unit
     | Continue of unit
 
-type custExcept =
-    | ReturnInProgress of 
-    | BreakInProgress of unit
-    | ContinueInProgress of unit
-
 type block = (* a block of code *)
     statement list
+
 type fxndef = (* a function definition *)
     { name: string; blk:block; params:string list }
 
@@ -47,6 +43,10 @@ type fxns = (* a global store for function definitions *)
     (string,fxndef)Hashtbl.t
 type scopeStack = (* a stack maintaining variable store scopes *)
     (string,float)Hashtbl.t list
+
+exception ReturnInProgress of float*scopeStack
+exception BreakInProgress of scopeStack
+exception ContinueInProgress of scopeStack
 
 (* ============================== functions ============================== *)
 
@@ -81,7 +81,7 @@ let rec evalVar (v: string) (ss: scopeStack) : float =
         )
 
 (* performs an expression evaluation *)
-let rec evalExpr (e: expr) (ss: scopeStack) (fs: fxns) (* : (float, scopeStack) *) =
+let rec evalExpr (e: expr) (ss: scopeStack) (fs: fxns) (* : (float,scopeStack) *) =
     match e with
     | Num(flt) -> flt,ss
     | Var(str) -> (evalVar str ss),ss
@@ -164,17 +164,17 @@ let rec evalExpr (e: expr) (ss: scopeStack) (fs: fxns) (* : (float, scopeStack) 
                     (float_of_bool ((bool_of_float val1) || (bool_of_float val2))),ss2
         )
         | _    -> raise(Failure ("Unknown binary operator `" ^ op ^ "`."))
-        )
+    )
     | Assign(vName,expr) -> (
         let vVal,ss1 = evalExpr expr ss fs in
             Hashtbl.replace (List.nth ss1 (List.length ss1-1)) vName vVal;
             vVal,ss1
-        )
+    )
     | FCall(f,exprList) -> (
         match Hashtbl.find_opt fs f with
         | Some(fxn) -> evalFxn fxn exprList ss fs
         | None -> (
-            match f with (* TODO *)
+            match f with
             | "s"    -> (
                 match List.length exprList = 1 with
                 | true  -> let x,ss1 = evalExpr (List.hd exprList) ss fs in sin(x),ss1
@@ -202,60 +202,79 @@ let rec evalExpr (e: expr) (ss: scopeStack) (fs: fxns) (* : (float, scopeStack) 
             | _ -> raise(Failure ("Unknown function call to " ^ f ^ "."))
         )
     )
+    | None() -> (0.,ss)
 
-(*  *)
-and evalFxn (fxn: fxndef) (el: expr list) (ss: scopeStack) (fs: fxns) (* : (float, scopeStack) *) =
+(* performs a function call given a program state and returns a value and new state *)
+and evalFxn (fxn: fxndef) (el: expr list) (ss: scopeStack) (fs: fxns) (* : (float,scopeStack) *) =
     let table = Hashtbl.create 10 in (* instantiate local scope *)
         let ss1 = unpackArgs table (fxn.params) el ss fs in
             let ss2 = ss1@[table] in (* add local scope to scope stack *)
-                evalBlock fxn.block ss2 fs (* call evalBlock to evaluate the body of the fxn. this throws (should) a return exception *)
-        
-    (* user fold_left *)
-    (* pop the local environment *)
-    0.,ss
+                try (* call evalBlock to evaluate the body of the fxn. this throws (should) a return exception *)
+                    let ss3,dc = evalBlock fxn.blk ss2 fs in
+                        0.,(List.rev (List.tl (List.rev ss3))) (* pop local scope,no return encountered,return 0 *)
+                with
+                    | ReturnInProgress(flt,ssr) -> flt,(List.rev (List.tl (List.rev ssr))) (* pop local scope,return encountered -> return the ret val *)
 
-(* *)
+(* recursively unpacks arguments into a new local scope for initializing function calls *)
 and unpackArgs (tbl: (string,float)Hashtbl.t) (params: string list) (el: expr list) (ss: scopeStack) (fs: fxns) : scopeStack =
-    match List.length params = List.length el with
-    | true  -> (
-        let x,ss1 = evalExpr (List.hd el) ss fs in
+    let len = (List.length el) in
+    match List.length params with
+    | len -> (
+        match len with
+        | 0 -> ss
+        | _ -> (
+            let x,ss1 = evalExpr (List.hd el) ss fs in
             Hashtbl.add tbl (List.hd params) x;
-            unpackArgs tbl (List.tl params) (List.tl el) ss1 fs;
-            ss1
+            unpackArgs tbl (List.tl params) (List.tl el) ss1 fs
+        )
     )
-    | false -> raise(Failure "Invalid number of arguments to custom function.")
+    | _ -> raise(Failure "Invalid number of arguments to custom function.")
 
 (*  *)
-and evalBlock (blk: block) (ss: scopeStack) (fs: fxns) =
-    (* TODO *)
-    (* create new environment *)
-    (* user fold_left *)
-    (* pop the local environment *)
-    0.,ss,fs
+and evalBlock (blk: block) (ss: scopeStack) (fs: fxns) (* : scopeStack,fxns *) =
+    match blk with
+        | [] -> ss,fs
+        | head::rest -> (
+            let ss1,fs1 = evalStatement head ss fs in
+                evalBlock rest ss1 fs1
+        )
 
-
-(*  *)
-let evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (*float, scopeStack, fxns*) =
+(* TODO *)
+and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns *) =
     match s with
-    | Expr(e) -> ( let ee = evalExpr e ss in ss ) (* TODO fix all these bullshit lines *)
-    | If(e,blkT,blkF) ->
-        let x = (
-        match bool_of_float(evalExpr e ss fs) with
-        | true -> evalBlock blkT ss fs; ss
-        | false -> evalBlock blkF ss fs; ss
-        ) in ss
-    | While(e,blk) -> ss
-    | For(init,cond,term,blk) -> ss
-    | FDef(f,params,blk) -> ss (* TODO make sure in global scope*)
-    | Return(e) -> ss
-    | Break() -> ss
-    | Continue() -> ss
-    | _ -> ss (*ignore *)
+        | Expr(e) -> (
+            let flt,ss1 = evalExpr e ss fs in
+                (* TODO,dont print assignments.
+                maybe return another attribute (a boolean)
+                telling us whether or not to print? *)
+                print_float flt;
+                ss1,fs
+        )
+        | If(e,blkT,blkF) -> (
+            let flt,ss1 = evalExpr e ss fs in
+                match bool_of_float(flt) with
+                    | true -> evalBlock blkT ss fs
+                    | false -> evalBlock blkF ss fs
+        )
+        | While(e,blk) -> ss,fs (* TODO make sure in global scope*)
+        | For(init,cond,term,blk) -> ss,fs (* TODO make sure in global scope*)
+        | FDef(f,params,blk) -> ss,fs (* TODO make sure in global scope*)
+        | Return(e) ->
+            let res,ss1 = (evalExpr e ss fs) in
+                raise(ReturnInProgress(res,ss1))
+        | Break() -> raise(BreakInProgress(ss))
+        | Continue() -> raise(ContinueInProgress(ss))
+        | _ -> ss,fs (* TODO ignore *)
 
-(*  *)
-let runCode(blk: block): unit = ()
-  (*evalBlock(param1,param2,...)*)
+(* TODO *)
+let runCode(blk: block): unit =
+    try ignore(evalBlock blk [Hashtbl.create 10] (Hashtbl.create 10)); ()
+    with
+        | ReturnInProgress(_,_) -> raise(Failure "Return from main program.");
+        | BreakInProgress(_) -> raise(Failure "Break outside a for/while.");
+        | ContinueInProgress(_) -> raise(Failure "Continue outside a for.");
 
+(*
 (* ============================== tests ============================== *)
 
 (* ------------------------------ test 0 ------------------------------ *)
@@ -274,7 +293,7 @@ let p1: block = [
   Expr(Var("v"))
 ]
 let%expect_test "p1" =
-  evalBlock p1 []; (* TODO use runCode? *)
+  runCode p1 [];
   [%expect {| 1. |}]
 
 (* ------------------------------ test 2 ------------------------------ *)
@@ -298,7 +317,7 @@ let p2: block = [
   Expr(Var("v"))
 ]
 let%expect_test "p1" =
-  evalBlock p2 []; (* TODO use runCode? *)
+  runCode p2 [];
   [%expect {| 3628800. |}]
 
 (* ------------------------------ test 3 ------------------------------ *)
@@ -328,5 +347,5 @@ let p3: block = [
   Expr(FCall("f",[Num(5.0)]));
 ]
 let%expect_test "p3" =
-  evalBlock p3 []; (* TODO use runCode? *)
-  [%expect {| 2. 5. |}]
+  runCode p3 [];
+  [%expect {| 2. 5. |}] *)
