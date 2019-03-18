@@ -4,7 +4,6 @@ open Stdlib
 (*
 why environment queue and not stack
 how to handle pre/post inc/dec ops
-how to handle mod
 how to read command line input
 how to enforce return type of tuple
 why are our tests not working
@@ -45,11 +44,11 @@ type fxndef = (* a function definition *)
     { name: string; blk:block; params:string list }
 
 type vars = (* a variable store for a given scope *)
-    (string,float)Hashtbl.t
+    (string,float)Stdlib.Hashtbl.t
 type fxns = (* a global store for function definitions *)
-    (string,fxndef)Hashtbl.t
+    (string,fxndef)Stdlib.Hashtbl.t
 type scopeStack = (* a stack maintaining variable store scopes *)
-    (string,float)Hashtbl.t list
+    (string,float)Stdlib.Hashtbl.t list
 
 exception ReturnInProgress of float*scopeStack
 exception BreakInProgress of scopeStack
@@ -71,14 +70,14 @@ let rec evalVar (v: string) (ss: scopeStack) : float =
     | 0 -> raise(Failure "Illegal variable environment state.")
     | 1 -> ( (* in global scope *)
         let vs = List.hd ss in
-            let res_opt = Hashtbl.find_opt vs v in
+            let res_opt = Stdlib.Hashtbl.find_opt vs v in
                 match res_opt with
                 | Some(res) -> res
                 | None -> 0.
         )
     | _ -> ( (* not in global scope *)
         let vs = List.nth ss ((List.length ss)-1) in
-            let res_opt = Hashtbl.find_opt vs v in
+            let res_opt = Stdlib.Hashtbl.find_opt vs v in
                 match res_opt with
                 | Some(res) -> res
                 | None -> (
@@ -120,10 +119,10 @@ let rec evalExpr (e: expr) (ss: scopeStack) (fs: fxns) (* : (float,scopeStack) *
                 let val2,ss2 = (evalExpr expr2 ss1 fs) in
                     (val1 /. val2),ss2
         )
-        | "%"  -> ((* TODO verify casting solution is acceptable *)
+        | "%"  -> (
             let val1,ss1 = (evalExpr expr1 ss fs) in
                 let val2,ss2 = (evalExpr expr2 ss1 fs) in
-                    (float_of_int(int_of_float(val1) % int_of_float(val2))),ss2
+                    (Core.Float.mod_float val1 val2),ss2
         )
         | "^"  -> (
             let val1,ss1 = (evalExpr expr1 ss fs) in
@@ -174,11 +173,11 @@ let rec evalExpr (e: expr) (ss: scopeStack) (fs: fxns) (* : (float,scopeStack) *
     )
     | Assign(vName,expr) -> (
         let vVal,ss1 = evalExpr expr ss fs in
-            Hashtbl.replace (List.nth ss1 (List.length ss1-1)) vName vVal;
+            Stdlib.Hashtbl.replace (List.nth ss1 (List.length ss1-1)) vName vVal;
             vVal,ss1
     )
     | FCall(f,exprList) -> (
-        match Hashtbl.find_opt fs f with
+        match Stdlib.Hashtbl.find_opt fs f with
         | Some(fxn) -> evalFxn fxn exprList ss fs
         | None -> (
             match f with
@@ -213,7 +212,7 @@ let rec evalExpr (e: expr) (ss: scopeStack) (fs: fxns) (* : (float,scopeStack) *
 
 (* performs a function call given a program state and returns a value and new state *)
 and evalFxn (fxn: fxndef) (el: expr list) (ss: scopeStack) (fs: fxns) (* : (float,scopeStack) *) =
-    let table = Hashtbl.create 10 in (* instantiate local scope *)
+    let table = Stdlib.Hashtbl.create 10 in (* instantiate local scope *)
         let ss1 = unpackArgs table (fxn.params) el ss fs in
             let ss2 = ss1@[table] in (* add local scope to scope stack *)
                 try (* call evalBlock to evaluate the body of the fxn. this throws (should) a return exception *)
@@ -223,7 +222,7 @@ and evalFxn (fxn: fxndef) (el: expr list) (ss: scopeStack) (fs: fxns) (* : (floa
                     | ReturnInProgress(flt,ssr) -> flt,(List.rev (List.tl (List.rev ssr))) (* pop local scope,return encountered -> return the ret val *)
 
 (* recursively unpacks arguments into a new local scope for initializing function calls *)
-and unpackArgs (tbl: (string,float)Hashtbl.t) (params: string list) (el: expr list) (ss: scopeStack) (fs: fxns) : scopeStack =
+and unpackArgs (tbl: (string,float)Stdlib.Hashtbl.t) (params: string list) (el: expr list) (ss: scopeStack) (fs: fxns) : scopeStack =
     let len = (List.length el) in
     match (List.length params) with
     | len -> (
@@ -231,7 +230,7 @@ and unpackArgs (tbl: (string,float)Hashtbl.t) (params: string list) (el: expr li
         | 0 -> ss
         | _ -> (
             let x,ss1 = evalExpr (List.hd el) ss fs in
-            Hashtbl.add tbl (List.hd params) x;
+            Stdlib.Hashtbl.add tbl (List.hd params) x;
             unpackArgs tbl (List.tl params) (List.tl el) ss1 fs
         )
     )
@@ -299,7 +298,7 @@ and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns 
                 | 0 -> raise(Failure("Global scope not defined."))
                 | 1 ->
                         let newFxnDef = { name=f; blk=blk; params=params } in
-                            (Hashtbl.replace fs f newFxnDef);
+                            (Stdlib.Hashtbl.replace fs f newFxnDef);
                             ss,fs
                 | _ -> raise(Failure("Function definition not in the global scope."))
         )
@@ -311,7 +310,7 @@ and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns 
 
 (* primes and performs initial function call to eval program *)
 let runCode(blk: block): unit =
-    try ignore(evalBlock blk [Hashtbl.create 10] (Hashtbl.create 10)); ()
+    try ignore(evalBlock blk [Stdlib.Hashtbl.create 10] (Stdlib.Hashtbl.create 10)); ()
     with
         | ReturnInProgress(_,_) -> raise(Failure "Return from main program.");
         | BreakInProgress(_) -> raise(Failure "Break outside a for/while.");
