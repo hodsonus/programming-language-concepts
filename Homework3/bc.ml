@@ -301,6 +301,7 @@ and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns 
                         ss1,fs
                     | _ ->
                         print_float flt;
+                        Stdlib.print_string "\n";
                         ss1,fs
         )
         | If(e,blkT,blkF) -> (
@@ -561,3 +562,21 @@ let%expect_test "runCode" =
     let p_1: block = [ Expr(Num(1.)) ] in
     runCode p_1;
     [%expect {| 1. |}]
+
+let%expect_test "ForLoopContinueBreak" = 
+    let for_init = Assign("i",Num(0.)) in
+        let for_cond = (Op2("<",Var("i"),Num(10.))) in
+            let for_upd = Op1("a++",Var("i")) in
+                let if1_cond = Op2("==",Op2("%",Var("i"),Num(2.)),Num(0.)) in
+                    let if1_statements = [Continue()] in
+                        let if2_cond = (Op2(">=",Var("i"),Num(7.))) in
+                            let if2_statements = [Break()] in
+                                let for_statements = [If(if1_cond, if1_statements, []); If(if2_cond, if2_statements, []); Expr(Var("i"))] in
+                                    let p_for: block = [ For( for_init, for_cond, for_upd, for_statements ) ] in
+                                        runCode p_for;
+                                        [%expect {| 
+                                        1.
+                                        3.
+                                        5. |}]
+                                        
+(* TODO -> check to ensure that assignments on the top level (ie as a statement) do not print to the console *)
