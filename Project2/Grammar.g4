@@ -7,8 +7,6 @@ grammar Grammar;
                 This is the compound statement. It allows multiple statements to be grouped together for execution.
             string
                 The string is printed to the output. Strings start with a double quote character and contain all characters until the next double quote character. All characters are taken literally, including any newline. No newline character is printed after the string.
-        read
-            
 */
 
 @header {
@@ -123,6 +121,9 @@ exprList returns [LinkedList<ExprNode> i]:
 bracketedExprs returns [ArrayList<ExprNode> i]:
       '{' (';'|NL)* eL=exprList (';'|NL)* '}' {
         $i = new ArrayList($eL.i);
+    }
+    | '{' (';'|NL)* '}' {
+        $i = new ArrayList<ExprNode>();
     };
 
 whileLoop returns [WhileNode i]:
@@ -156,6 +157,9 @@ forLoop returns [ForNode i]:
 defineFxn returns [CtrlNode i]:
       'define' ID '(' fAL=fxnArgList ')' NL? bExp=bothExpr {
         $i = new FxnDefNode($ID.getText(), new ArrayList($fAL.i), $bExp.i);
+    }
+    | 'define' ID '(' ')' NL? bExp=bothExpr {
+        $i = new FxnDefNode($ID.getText(), new ArrayList<String>(), $bExp.i);
     };
 
 fxnArgList returns [LinkedList<String> i]:

@@ -118,6 +118,7 @@ public class ProgramState {
             }
             localVars.pop();
         }
+        if (retVal == null) retVal = new Double(0.);
         return retVal;
     }
 }

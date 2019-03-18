@@ -35,7 +35,7 @@ public class FxnDefNode extends CtrlNode {
             rep.append(arg);
             rep.append(", ");
         }
-        rep.delete(rep.length()-2, rep.length()); // remove the last ", " from the representation
+        if (argNames.size() != 0) rep.delete(rep.length()-2, rep.length()); // remove the last ", " from the representation
         rep.append(") {\n");
         for (ExprNode expr : exprs) {
             rep.append("\t");
