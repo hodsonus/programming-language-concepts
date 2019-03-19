@@ -1,0 +1,16 @@
+Top-Level Files:
+- bc.ml
+- dune
+- README
+
+Build/Run Code: `clear && dune clean && dune build && dune runtest`
+
+Functionality:
+- All general features implemented and thoroughly tested (new interface usage demonstrated in unit tests)
+- Non-essential features also implemented including read(), string printing, and pre/post increment/decrement
+
+Exceptional Behavior:
+- Interface redesign. Notable changes include moving Assign to Expr from Statement and adding some new types.
+- Type expr represents a type evaluable to a float while type statement represents a top-level expression (that may wrap expr)
+- We don't enforce "assignment;comparison;assignment" in loops by design, users are free to use any numeric expressions ("expr;expr;expr")
+- Invalid characters (non-double) will terminate the program on a read() operation.

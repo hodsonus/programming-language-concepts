@@ -1,23 +1,6 @@
 open Core
 open Stdlib
 
-(*
-why environment queue and not stack
-
-how to enforce return type of tuple
-if statement in test had a condition of "true"
-*)
-
-(*
-TODO AT END
-Write tests
-Check to make sure input to fxns is the correct state
-
-README
-type xxx must not be wrapped in Expr
-
-*)
-
 (* ============================== types ============================== *)
 
 type expr = (* a fragment of code *)
@@ -58,8 +41,8 @@ type fxns = (* a global store for function definitions *)
 type scopeStack = (* a stack maintaining variable store scopes *)
     (string,float)Stdlib.Hashtbl.t list
 
-exception ReturnInProgress of float*scopeStack
-exception BreakInProgress of scopeStack
+exception ReturnInProgress   of float*scopeStack
+exception BreakInProgress    of scopeStack
 exception ContinueInProgress of scopeStack
 
 (* ============================== functions ============================== *)
@@ -285,7 +268,7 @@ and unpack_args (tbl: (string,float)Stdlib.Hashtbl.t) (params: string list) (el:
         )
         | false -> raise(Failure "Invalid number of arguments to custom function.")
 
-(* takes a list of statements and evaluates them (global or function scope), returns new state *)
+(* takes a list of statements and evaluates them (global or function scope),returns new state *)
 and evalBlock (blk: block) (ss: scopeStack) (fs: fxns) (* : scopeStack,fxns *) =
     match blk with
         | [] -> ss,fs
@@ -300,13 +283,22 @@ and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns 
         | Expr(e) -> (
             let flt,ss1 = evalExpr e ss fs in
                 match e with
-                    | Assign(_,_) ->
-                        ();
-                        ss1,fs
-                    | _ ->
+                    | Assign(_,_) -> (); ss1,fs
+                    | Op1(op,_) -> (
+                        match op with
+                            | ("-"|"!") -> (
+                                print_float flt;
+                                Stdlib.print_string "\n";
+                                ss1,fs
+                            )
+                            | _ -> ( (); ss1,fs )
+                    )
+                    | None() -> ( (); ss1,fs )
+                    | _ -> (
                         print_float flt;
                         Stdlib.print_string "\n";
                         ss1,fs
+                    )
         )
         | If(e,blkT,blkF) -> (
             match contains_fxndef blkT || contains_fxndef blkF with
@@ -350,14 +342,14 @@ and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns 
                                         try
                                             let ss3,_ = evalBlock blk !ssr fs in
                                                 ssr := ss3;
-                                                let res2,ss4 = (evalExpr cond !ssr fs) in
-                                                    resr := res2;
+                                                let _,ss4 = (evalExpr upd !ssr fs) in
                                                     ssr := ss4;
-                                                    let _,ss5 = (evalExpr upd !ssr fs) in
+                                                    let res2,ss5 = (evalExpr cond !ssr fs) in
+                                                        resr := res2;
                                                         ssr := ss5;
-                                        with ContinueInProgress(ss1) ->
+                                        with ContinueInProgress(ssCont) ->
                                             (* update ssr and eval the update condition again *)
-                                            let _,ss6 = (evalExpr upd ss1 fs) in
+                                            let _,ss6 = (evalExpr upd ssCont fs) in
                                                 ssr := ss6;
                                     done;
                                     !ssr,fs
@@ -407,13 +399,13 @@ let runCode(blk: block): unit =
     try ignore(evalBlock blk [Stdlib.Hashtbl.create 10] (Stdlib.Hashtbl.create 10)); ()
     with
         | ReturnInProgress(_,_) -> raise(Failure "Return from main program.")
-        | BreakInProgress(_) -> raise(Failure "Break outside a for/while.")
+        | BreakInProgress(_)    -> raise(Failure "Break outside a for/while.")
         | ContinueInProgress(_) -> raise(Failure "Continue outside a for.")
 
 (* ============================== tests ============================== *)
 
 (* ------------------------------ test 0 ------------------------------ *)
-(* provided, adapted to new interface *)
+(* provided,adapted to new interface *)
 let%expect_test "evalNum" =
     let flt,_ = evalExpr (Num 10.) [Stdlib.Hashtbl.create 10] (Stdlib.Hashtbl.create 10) in
     flt |>
@@ -421,9 +413,9 @@ let%expect_test "evalNum" =
     [%expect {| 10. |}]
 
 (* ------------------------------ test 1 ------------------------------ *)
-(* provided, adapted to new interface *)
+(* provided,adapted to new interface *)
 (* Sample Program 1
-    v = 10;
+    v = 1;
     v
 *)
 let%expect_test "p1" =
@@ -433,7 +425,7 @@ let%expect_test "p1" =
             [%expect {| 1. |}]
 
 (* ------------------------------ test 2 ------------------------------ *)
-(* provided, adapted to new interface *)
+(* provided,adapted to new interface *)
 (* Sample Program 2
     v = 1.;
     if (v>10.)
@@ -443,7 +435,7 @@ let%expect_test "p1" =
         v = v * i
     v
 *)
-let%expect_test "p1" =
+let%expect_test "p2" =
     let p2: block = [
         Expr(Assign("v",Num(1.)));
         If(Op2(">",Var("v"),Num(10.)),
@@ -451,17 +443,17 @@ let%expect_test "p1" =
             [For(
                 Assign("i",Num(2.)),
                 Op2("<",Var("i"),Num(10.)),
-                Op1("++a",Var("i")),
+                Op1("a++",Var("i")),
                     [Expr(Assign("v",Op2("*",Var("v"),Var("i"))))]
             )]
         );
         Expr(Var("v"))
     ] in
     (runCode p2);
-    [%expect {| 3628800. |}]
+    [%expect {| 362880. |}]
 
 (* ------------------------------ test 3 ------------------------------ *)
-(* provided, adapted to new interface *)
+(* provided,adapted to new interface *)
 (* Fibbonaci Sequence
     define f(x) {
         if (x<=1.)
@@ -493,14 +485,20 @@ let%expect_test "p3" =
         Expr(FCall("f",[Num(5.)]));
     ] in
     (runCode p3);
-    [%expect {| 0.1.1.2.3.5. |}]
+    [%expect {|
+        0.
+        1.
+        1.
+        2.
+        3.
+        5. |}]
 
 
 (* ------------------------- custom unit tests ------------------------- *)
 
 let%expect_test "bool_of_float-float_of_bool" =
-    let ab, bb, cb = bool_of_float(-.1.), bool_of_float(0.), bool_of_float(1.) in
-    let af, bf = float_of_bool(true), float_of_bool(false) in
+    let ab,bb,cb = bool_of_float(-.1.),bool_of_float(0.),bool_of_float(1.) in
+    let af,bf = float_of_bool(true),float_of_bool(false) in
     ab |> printf "%B "; bb |> printf "%B "; cb |> printf "%B ";
     af |> printf "%F "; bf |> printf "%F ";
     [%expect {| true false true 1. 0. |}]
@@ -569,20 +567,234 @@ let%expect_test "runCode" =
     runCode p_1;
     [%expect {| 1. |}]
 
-let%expect_test "ForLoopContinueBreak" = 
-    let for_init = Assign("i",Num(0.)) in
-        let for_cond = (Op2("<",Var("i"),Num(10.))) in
-            let for_upd = Op1("a++",Var("i")) in
-                let if1_cond = Op2("==",Op2("%",Var("i"),Num(2.)),Num(0.)) in
-                    let if1_statements = [Continue()] in
-                        let if2_cond = (Op2(">=",Var("i"),Num(7.))) in
-                            let if2_statements = [Break()] in
-                                let for_statements = [If(if1_cond, if1_statements, []); If(if2_cond, if2_statements, []); Expr(Var("i"))] in
-                                    let p_for: block = [ For( for_init, for_cond, for_upd, for_statements ) ] in
-                                        runCode p_for;
-                                        [%expect {| 
-                                        1.
-                                        3.
-                                        5. |}]
-                                        
-(* TODO -> check to ensure that assignments on the top level (ie as a statement) do not print to the console *)
+let%expect_test "ForLoopContinueBreak" =
+    let p_for: block = [
+        For(Assign("i",Num(0.)),Op2("<",Var("i"),Num(10.)),Op1("a++",Var("i")),[
+            If(Op2("==",Op2("%",Var("i"),Num(2.)),Num(0.)),
+                [Continue()],
+                []);
+                If(Op2(">=",Var("i"),Num(7.)),
+                    [Break()],
+                    []);
+                Expr(Var("i")
+            )]
+        )] in
+            runCode p_for;
+            [%expect {|
+                1.
+                3.
+                5. |}]
+
+let%expect_test "WhileLoopBreak" =
+    let p_while: block = [
+        Expr(Assign("i",Num(0.)));
+        While( Op2("<",Var("i"),Num(10.)),[
+            If(Op2(">=",Var("i"),Num(7.)),
+                [Break()],
+                []);
+            Expr(Var("i"));
+            Expr(Op1("a++",Var("i")))
+        ]);
+    ] in
+        runCode p_while;
+        [%expect {|
+            0.
+            1.
+            2.
+            3.
+            4.
+            5.
+            6. |}]
+
+let%expect_test "equalityFailure" =
+    let p_equality: block =
+        [ Expr(Assign("i",Num(0.))); Expr(Op2("==",Var("i"),Num(10.))) ] in
+            runCode p_equality;
+            [%expect {|
+             0.
+             |}]
+
+let%expect_test "equalitySuccess" =
+    let p_equality: block =
+        [ Expr(Assign("i",Num(10.))); Expr(Op2("==",Var("i"),Num(10.))) ] in
+            runCode p_equality;
+            [%expect {|
+             1.
+             |}]
+
+let%expect_test "inequality" =
+    let p_inequality: block = [
+        Expr(Op2("!=",Num(2.),Num(2.)));
+        Expr(Op2("!=",Num(4.),Num(6.))); ] in
+            runCode p_inequality;
+            [%expect {|
+            0.
+            1. |}]
+
+let%expect_test "not" =
+    let p_not: block = [
+        Expr(Op1("!",Num(-1.)));
+        Expr(Op1("!",Num(0.)));
+        Expr(Op1("!",Num(1.))); ] in
+            runCode p_not;
+            [%expect {|
+                0.
+                1.
+                0. |}]
+
+let%expect_test "and" =
+    let p_and: block = [
+        Expr(Op2("&&",Num(-1.),Num(1.)));
+        Expr(Op2("&&",Num(-1.),Num(0.)));
+        Expr(Op2("&&",Num(0.),Num(1.)));
+        Expr(Op2("&&",Num(0.),Num(0.)));
+    ] in
+        runCode p_and;
+        [%expect {|
+            1.
+            0.
+            0.
+            0. |}]
+
+let%expect_test "or" =
+    let p_or: block = [
+        Expr(Op2("||",Num(-1.),Num(1.)));
+        Expr(Op2("||",Num(-1.),Num(0.)));
+        Expr(Op2("||",Num(0.),Num(1.)));
+        Expr(Op2("||",Num(0.),Num(0.)));
+    ] in
+        runCode p_or;
+        [%expect {|
+            1.
+            1.
+            1.
+            0. |}]
+
+let%expect_test "stdlib" =
+    let p_stdlib: block = [
+        Expr(FCall("s",[Num(0.5)]));
+        Expr(FCall("c",[Num(0.5)]));
+        Expr(FCall("e",[Num(0.5)]));
+        Expr(FCall("l",[Num(0.5)]));
+        Expr(FCall("sqrt",[Num(0.5)]));
+        (* tested but commented for run convenience
+            Expr(FCall("read",[])) *)
+    ] in
+        runCode p_stdlib;
+        [%expect {|
+            0.479425538604
+            0.87758256189
+            1.6487212707
+            -0.69314718056
+            0.707106781187 |}]
+
+let%expect_test "print" =
+    let print: block =
+        [ Print([ String("v: "); Expr(Assign("v",Num(1.))); Expr(Var("v")) ]) ] in
+            runCode print;
+            [%expect {| v: 1.1. |}]
+
+let%expect_test "emptyFxns" =
+    let p_fxndef: block = [
+        FDef("f",[],[Expr(None())]);
+        Expr(FCall("f",[]));
+        FDef("g",[],[Return(None())]);
+        Expr(FCall("g",[]));
+        FDef("g",[],[Return(None())]);
+    ] in
+        runCode p_fxndef;
+        [%expect {|
+            0.
+            0. |}]
+
+let%expect_test "improperArgsList" =
+    let improperArgsList: block = [
+        FDef("f",["x"],[]);
+        Expr(FCall("f",[]));
+    ] in
+    try runCode improperArgsList;
+    with Failure(s) -> (
+        s |> printf "%S\n";
+        [%expect {| "Invalid number of arguments to custom function." |}];
+    ); ()
+
+(* TODO, empty expression lists for if, while, for, fxns *)
+let%expect_test "emptyExprLists" =
+    let p_emptyFxn: block = [FDef("f",[],[]); Expr(FCall("f",[]))] in
+    let p_emptyIf: block = [If(None(),[],[])] in
+    let p_emptyFor: block = [For(None(),Op2("<",Op1("a++",Var("i")),Num(10.)),None(),[])] in
+    let p_emptyWhile: block = [While(Op2("<",Op1("a++",Var("i")),Num(10.)), [])] in
+    runCode p_emptyFxn;
+    runCode p_emptyIf;
+    runCode p_emptyFor;
+    runCode p_emptyWhile;
+    [%expect {| 0. |}]
+
+let%expect_test "nestedFxns" =
+    let p_nestFxn: block = [FDef("f",[],[FDef("f",[],[Expr(None())]);]);] in
+    let p_nestIf: block = [
+        If(None(),[FDef("f",[],[Expr(None())])],[])] in
+    let p_nestFor: block = [
+        For(None(),Num(1.),None(),
+            [FDef("f",[],[Expr(None())])]);] in
+    let p_nestWhile: block = [
+        While(Num(1.), [FDef("f",[],[Expr(None())])]);] in
+    try runCode p_nestFxn;
+    with Failure(s) -> (
+        s |> printf "%S\n";
+        [%expect {| "Error defining function in \"define function\" statement." |}];
+    );
+    try runCode p_nestIf;
+    with Failure(s) -> (
+        s |> printf "%S\n";
+        [%expect {| "Error defining function in if/else." |}];
+    );
+    try runCode p_nestFor;
+    with Failure(s) -> (
+        s |> printf "%S\n";
+        [%expect {| "Error defining function in for." |}];
+    );
+    try runCode p_nestWhile;
+    with Failure(s) -> (
+        s |> printf "%S\n";
+        [%expect {| "Error defining function in while." |}];
+    ); ()
+
+let%expect_test "SingleForLoop" =
+let p_single_for: block = [
+    For(Assign("i",Num(0.)),
+        Op2("<",Var("i"),Num(2.)),
+        Op1("++a",Var("i")),[
+            Expr(Var("i"))
+    ])] in
+        runCode p_single_for;
+        [%expect {|
+            0.
+            1. |}]
+
+let%expect_test "NoForLoop" =
+let p_single_for: block = [
+    For(Assign("i",Num(0.)),
+        Op2("<",Var("i"),Num(-1.)),
+        Op1("++a",Var("i")),[
+            Expr(Var("i"))
+    ])] in
+        runCode p_single_for;
+        [%expect {| |}]
+
+let%expect_test "NestedForLoop" =
+let p_nested_for: block = [
+    For(Assign("i",Num(0.)),
+        Op2("<",Var("i"),Num(1.)),
+        Op1("a++",Var("i")),[
+            For(Assign("j",Num(0.)),
+                Op2("<",Var("j"),Num(1.)),
+                Op1("a++",Var("j")),[
+                    Expr(Var("i"));
+                    Expr(Var("j"))
+            ])
+    ])] in
+        runCode p_nested_for;
+        [%expect {|
+            0.
+            0. |}]
