@@ -1,0 +1,23 @@
+###### 5. Extra Credit: Constant Value Propagation ######
+
+x = 14+2^2-1*6
+
+if(2^2^3) {
+    print x
+}
+
+for(x = (2*4*5/4)%4; x > 0; x = -1*10) {
+    print x
+}
+
+while(2+3-4+7 < 0) {
+    print x
+}
+
+y = 2*(-3)&&0
+print y
+
+define f() {return !(0||0)}
+f()
+
+print (3 <= 3) != 1

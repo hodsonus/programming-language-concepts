@@ -5,6 +5,7 @@ import Core.ProgramState;
 import Exceptions.BreakInProgressException;
 import Exceptions.ContinueInProgressException;
 import Exceptions.CustomGrammarException;
+import Exceptions.NestedFxnDefException;
 import Exceptions.ReturnInProgressException;
 import ValueNodes.AssNode;
 import ValueNodes.NumNode;
@@ -26,6 +27,9 @@ public class WhileNode extends LoopNode {
             try {
                 for (int i = 0; i < expressions.size(); i++) {
                         currExpr = expressions.get(i);
+                        if(currExpr instanceof FxnDefNode) {
+                            throw new NestedFxnDefException();
+                        }
                         currVal = currExpr.eval(ps);
                         if (!(currExpr instanceof AssNode) && currVal != null) {
                             System.out.println(currVal);

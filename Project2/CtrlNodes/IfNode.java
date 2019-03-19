@@ -2,6 +2,7 @@ package CtrlNodes;
 
 import Core.ExprNode;
 import Core.ProgramState;
+import Exceptions.NestedFxnDefException;
 import Exceptions.BreakInProgressException;
 import Exceptions.ContinueInProgressException;
 import Exceptions.CustomGrammarException;
@@ -29,6 +30,9 @@ public class IfNode extends CtrlNode {
         if (condition.eval(ps)!=0) {
             for (int i = 0; i < ifExpressions.size(); i++) {
                 currExpr = ifExpressions.get(i);
+                if(currExpr instanceof FxnDefNode) {
+                    throw new NestedFxnDefException();
+                }
                 currVal = currExpr.eval(ps);
                 if (!(currExpr instanceof AssNode) && currVal != null) {
                     System.out.println(currVal);

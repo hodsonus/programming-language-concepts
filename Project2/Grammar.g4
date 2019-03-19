@@ -1,14 +1,5 @@
 grammar Grammar;
 
-/* TODO
-    Do we need to implement these?
-        Statements
-            { statement_list }
-                This is the compound statement. It allows multiple statements to be grouped together for execution.
-            string
-                The string is printed to the output. Strings start with a double quote character and contain all characters until the next double quote character. All characters are taken literally, including any newline. No newline character is printed after the string.
-*/
-
 @header {
     import Core.*;
     import CtrlNodes.*;
@@ -72,39 +63,17 @@ printList returns [LinkedList<ValueNode> i]:
     };
 
 ctrl returns [CtrlNode i]:
-      ifs=ifStatement {
-        $i = $ifs.i;
-    }
-    | w=whileLoop {
-        $i = $w.i;
-    }
-    | f=forLoop {
-        $i = $f.i;
-    }
-    | d=defineFxn {
-        $i = $d.i;
-    }
-    | p=printExpr {
-        $i = $p.i;
-    }
-    | 'quit' {
-        System.exit(0);
-    }
-    | 'return' n=num {
-        $i = new ReturnNode($n.i);
-    }
-    | 'return' {
-        $i = new ReturnNode(new ConstNode(0.0));
-    }
-    | 'break' {
-        $i = new BreakNode();
-    }
-    | 'continue' {
-        $i = new ContinueNode();
-    }
-    | 'halt' {
-        $i = new HaltNode();
-    };
+      ifs=ifStatement { $i = $ifs.i; }
+    | w=whileLoop { $i = $w.i; }
+    | f=forLoop { $i = $f.i; }
+    | d=defineFxn { $i = $d.i; }
+    | p=printExpr { $i = $p.i; }
+    | 'quit' { System.exit(0); }
+    | 'return' n=num { $i = new ReturnNode($n.i); }
+    | 'return' { $i = new ReturnNode(new ConstNode(0.0)); }
+    | 'break' { $i = new BreakNode(); }
+    | 'continue' { $i = new ContinueNode(); }
+    | 'halt' { $i = new HaltNode(); };
 
 exprList returns [LinkedList<ExprNode> i]:
       e=expr (';'|NL)+ eL=exprList {
@@ -310,7 +279,6 @@ num returns [NumNode i]:
         if (left instanceof ConstNode && right instanceof ConstNode) {
             ConstNode constLeft = (ConstNode)left;
             ConstNode constRight = (ConstNode)right;
-            
             $i = new ConstNode(   ((constLeft.val != 0) && (constRight.val != 0)) ? 1:0   );
         }
         else {
@@ -324,19 +292,12 @@ num returns [NumNode i]:
         if (left instanceof ConstNode && right instanceof ConstNode) {
             ConstNode constLeft = (ConstNode)left;
             ConstNode constRight = (ConstNode)right;
-            
             $i = new ConstNode(   ((constLeft.val != 0) || (constRight.val != 0)) ? 1:0   );
         }
-        else {
-            $i = new BinNode($nl.i, op, $nr.i);
-        }
+        else { $i = new BinNode($nl.i, op, $nr.i); }
     }
-    | ID {
-        $i = new IDNode(  $ID.getText()  );
-    }
-    | NUM {
-        $i = new ConstNode(  Double.parseDouble($NUM.getText())  );
-    };
+    | ID { $i = new IDNode(  $ID.getText()  ); }
+    | NUM { $i = new ConstNode(  Double.parseDouble($NUM.getText())  ); };
 
 fxn returns [FxnCallNode i]:
       ID '(' ')' {
@@ -360,10 +321,7 @@ numArgList returns [LinkedList<NumNode> i]:
         $i = retList;
     };
 
-parens returns [NumNode i]:
-      '(' n=num ')' {
-        $i = $n.i;
-    };
+parens returns [NumNode i]: '(' n=num ')' { $i = $n.i; };
 
 uniArith returns [SelfAssNode i]:
       op=('++'|'--') ID {

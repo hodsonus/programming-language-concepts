@@ -1,21 +1,59 @@
-TODO - complete readme
-
-Files:
+Top-Level Files:
 - Grammar.g4
-- Grammar.java
+- Main.java
 - test.bc
+- const-val-prop.bc
 - README
+
+Packages/Classes:
+    Core
+        ASTNode - the abstact class that begins the polymorphism
+        ExprNode - any kind of node (can represent either structure/control or value) that can be composed together to make a program
+        ProgramState - the current state of the program at is necessary to evaluate an expression
+        RootASTNode - the root of the tree, contains a list of top level expressions
+    CtrlNodes
+        BreakNode - represents a break in a while loop or a for loop. implemented with the custom exception type found below
+        ContinueNode - represents a continue in a for loop. implemented with the custom exception type found below
+        CtrlNode - represents all control and structural statements in a program. i.e. -> any statment that does not evaluate into a float
+        ForNode - represents a for loop and all of the attributes necessary to evaluate it
+        FxnDefNode - represents the definition of a function. when evaluated, a FxnRootNode is placed in the fxn hash map for later lookup and use in the program
+        FxnRootNode - represents the beginning of a function call. stored in the hashmap of fxns for lookup
+        HaltNode - represents a halt in the program. halt terminates the program when it is evaluated. the similar quit is implemented as well. quit terminates on parse, halt terminates on execution
+        IfNode - represents an if statement and all of the attributes necessary to evaluate it. if the if statement has no else clause then the member values used to represent the else clause are null
+        LoopNode - abstact class that is the parent class for both while loops and for loops
+        PrintNode - represents a print statement and all of the arguments provided to print
+        ReturnNode - represents a return from a function. implemented with the custom exception type found below
+        WhileNode - represents a while loop and all of the attributes necessary to evaluate it
+    Exceptions
+        BreakInProgressException - an exception that is thrown when the BreakNode is evaluated in both ForNode eval and WhileNode eval
+        ContinueInProgressException - an exception that is thrown when the ContinueNode is evaluated. Is caught in ForNode eval
+        ReturnInProgressException - an exception that is thrown when the ReturnNode is evaluated. Is caught in FxnCall.
+        CustomGrammarException - superclass for all of the custom exceptions defined here (except the Break, Return and Custom)
+        FxnDefNotFoundException - thrown when an unknown function is called
+        InvalidNumArgsException - thrown when an invalid number of args is presented to a fxn
+        NestedFxnDefException - thrown when a fxn is nested where it should not be
+        UnknownOpException - thrown when an unknown operator is found
+    ValueNodes - all the value nodes. see ValueNode
+        AssNode - assignment operators
+        BinNode - binary operators
+        ConstNode - constants
+        FxnCallNode - represents a call to a function with an args list
+        IDNode - represents a variable use (variable lookup)
+        NumNode - every num node can be condensed into a float. this is what ties this class together.
+        SelfAssNode - preincrements and postincrement operators (++a, --a, a++, a--)
+        StringNode - a string
+        UniNode - unary operators
+        ValueNode - ties NumNodes and ValNodes together for use in print statements and other places
 
 Build/Run Code: `make`
 
 Functionality:
-- 
+- All general features implemented (tests.bc demo)
+- Constant value propagation implemented for extra credit (const-vap-prop.bc demo)
 
 Exceptional Behavior:
-- We dont have "assignment comparison assignment" in our for loops, rather, "numeric numeric numeric"
-- Constant value propagation is implemented.
+- We don't enforce "assignment;comparison;assignment" in for loops, rather, users may use any numeric expressions ("numeric;numeric;numeric")
 - Print function was implemented using Java println() rather than print() by design.
 - Modulus was implemented simply using the integer `%` operator without scaling for floats/doubles.
 - Taking a square root or log of a negative number will result in NaN.
-
 - Invalid characters (non-double) will terminate the program on a read() operation.
