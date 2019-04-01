@@ -83,6 +83,21 @@ and deg_times (lis : pExp list) (accum : int) : int =
 let compare (e1: pExp) (e2: pExp) : bool =
   degree e1 > degree e2
 
+let print_pow (m: int) : unit = 
+    match m with
+        | 0 -> ( 
+            print_string "1";
+            ()
+        )
+        | 1 -> (
+            print_string "x";
+            ()
+        )
+        | _ -> (
+            print_string ("x^"^string_of_int(m));
+            ()
+        )
+
 (* Print a pExpr nicely
   Term(3,0) -> 3
   Term(5,1) -> 5x
@@ -96,42 +111,66 @@ let compare (e1: pExp) (e2: pExp) : bool =
 let rec print_pExp (_e: pExp) : unit =
     match _e with
         | Term(n, m) -> (
-            match m == 0 with
-                | true -> (
-                    Printf.printf("%d", n);
+            match n with
+                | 0 -> ( 
+                    Printf.printf("0");
                     ()
                 )
-                | false -> (
-                    match n with
-                        | 0 -> ( Printf.printf("0"); () )
-                        | 1 -> ();
-                        | _ -> Printf.printf(string_of_int(n));
-                    match m with
-                        | 1 -> Printf.printf("x");
-                        | _ -> Printf.printf("x^"^string_of_int(m));
+                | 1 -> (
+                    ();
+                    print_pow m
+                )
+                | _ -> (
+                    print_string (string_of_int(n));
+                    print_pow m
                 )
         )
         | Plus(l) -> (
-            print '(';
+            print_string "(";
             print_plus l;
-            print ')';
+            print_string ")";
             ()
         )
         | Times(l) ->  (
-            print '(';
+            print_string "(";
             print_times l;
-            print ')';
+            print_string ")";
             ()
         )
 
+(* the same as print_times, but with addition symbols instead of multiplication symbols *)
 and print_plus (lis: pExp list) : unit =
     match lis with
+        (* If the list is empty, return *)
         | [] -> ()
+        (* If list contains 2 or more elements, print the first element, followed by a plus sign, and then recurse *)
+        | hd::nxt::tl -> (
+            print_pExp hd;
+            print_string " + ";
+            print_plus ([nxt]@tl)
+        )
+        (* If the list contains 1 element only, print the element and return *)
         | hd::tl -> (
+            print_pExp hd;
             ()
         )
 
-and print_times (lis: pExp list) : unit = ()
+(* the same as print_plus, but with multiplication symbols instead of addition symbols *)
+and print_times (lis: pExp list) : unit =
+    match lis with
+        (* If the list is empty, return *)
+        | [] -> ()
+        (* If list contains 2 or more elements, print the first element, followed by a plus sign, and then recurse *)
+        | hd::nxt::tl -> (
+            print_pExp hd;
+            print_string " * ";
+            print_times ([nxt]@tl)
+        )
+        (* If the list contains 1 element only, print the element and return *)
+        | hd::tl -> (
+            print_pExp hd;
+            ()
+        )
 
 (*Function to simplify (one pass) pExpr
 
