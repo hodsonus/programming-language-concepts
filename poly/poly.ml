@@ -186,8 +186,13 @@ and simplify1_plus (lis : pExp list) : pExp list = lis
 
 and simplify1_times (lis : pExp list) : pExp list = lis
 
-(*Compute if two pExp are the same
-  Make sure this code works before you work on simplify1
+
+
+
+(* Compute if two pExp are the same
+   Make sure this code works before you work on simplify1
+   This computes structural equality, i.e. the type of equality
+   where the polynomials have the same node nesting
 *)
 let rec equal_pExp (e1: pExp) (e2: pExp) : bool =
     match e1 with
@@ -209,7 +214,6 @@ let rec equal_pExp (e1: pExp) (e2: pExp) : bool =
                 | Plus(_) -> false
                 | Times(lis2) -> (equal_list lis1 lis2)
         )
-
 and equal_list (lis1: pExp list) (lis2: pExp list) : bool = 
     match lis1 with
         | [] -> (
@@ -228,6 +232,47 @@ and equal_list (lis1: pExp list) (lis2: pExp list) : bool =
                         )
                 )
         )
+
+
+
+let rec fastexpt : int -> int -> int = fun b n ->
+    if n = 0 then 1
+    else 
+    let b2 = fastexpt b (n / 2) in
+    if n mod 2 = 0 then b2 * b2 
+    else b * b2 * b2
+
+
+
+(* evaluate a pExp at a given x value *)
+let rec evaluate_pExp (exp: pExp) (x: int) : int =
+    match exp with
+        | Term(n,m) -> n*(fastexpt x m)
+        | Times(lis) -> (evaluate_times_list lis x)
+        | Plus(lis) -> (evaluate_plus_list lis x)
+and evaluate_times_list (lis: pExp list) (x: int) : int = 
+    match lis with
+        | [] -> 1
+        | hd::tl -> (evaluate_pExp hd x)*(evaluate_times_list tl x)
+and evaluate_plus_list (lis: pExp list) (x: int) : int =
+    match lis with
+        | [] -> 0
+        | hd::tl -> (evaluate_pExp hd x)+(evaluate_plus_list tl x)
+
+
+(* TODO *)
+(* Helper fucntion used below for the equal_pExp_numeric fxn *)
+let equal_pExp_numeric_helper (exp1: pExp) (exp2: pExp) (n: int) : bool = true
+
+(* Compute if two pExp are the same.
+   This computes numerical equality, i.e. the type of equality
+   where the polynomials produce the same output given input.
+*)
+let equal_pExp_numeric (exp1: pExp) (exp2: pExp) : bool = 
+    let deg1 = degree exp1 in
+        let deg2 = degree exp2 in
+            let maxDeg = (max deg1 deg2) in
+                (equal_pExp_numeric_helper exp1 exp2 maxDeg)
 
 (* Fixed point version of simplify1
   i.e. Apply simplify1 until no progress is made
