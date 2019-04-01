@@ -126,7 +126,7 @@ let rec print_pExp (e: pExp) : unit =
                     match m with 
                         | 0 -> print_string (string_of_int n)
                         | 1 -> print_string ((string_of_int n)^"x")
-                        | 2 -> print_string ((string_of_int n)^"x^"^(string_of_int m))
+                        | _ -> print_string ((string_of_int n)^"x^"^(string_of_int m))
                 )
         )
         | Plus(l) -> (
@@ -158,40 +158,6 @@ and print_pExp_list (lis : pExp list) (symbol : string) : unit =
             ()
         )
 
-(* the same as print_times, but with addition symbols instead of multiplication symbols *)
-and print_plus (lis: pExp list) : unit =
-    match lis with
-        (* If the list is empty, return *)
-        | [] -> ()
-        (* If list contains 2 or more elements, print the first element, followed by a plus sign, and then recurse *)
-        | hd::nxt::tl -> (
-            print_pExp hd;
-            print_string " + ";
-            print_plus ([nxt]@tl)
-        )
-        (* If the list contains 1 element only, print the element and return *)
-        | hd::tl -> (
-            print_pExp hd;
-            ()
-        )
-
-(* the same as print_plus, but with multiplication symbols instead of addition symbols *)
-and print_times (lis: pExp list) : unit =
-    match lis with
-        (* If the list is empty, return *)
-        | [] -> ()
-        (* If list contains 2 or more elements, print the first element, followed by a plus sign, and then recurse *)
-        | hd::nxt::tl -> (
-            print_pExp hd;
-            print_string " * ";
-            print_times ([nxt]@tl)
-        )
-        (* If the list contains 1 element only, print the element and return *)
-        | hd::tl -> (
-            print_pExp hd;
-            ()
-        )
-
 (*Function to simplify (one pass) pExpr
 
   n1 x^m1 * n2 x^m2 -> n1*n2 x^(m1+m2)
@@ -208,14 +174,60 @@ and print_times (lis: pExp list) : unit =
       => Plus[Term(2,3); Term(6,5)]
   Hint 6: Find other situations that can arise
 *)
-let simplify1 (e:pExp): pExp =
-    e
+let rec simplify1 (e:pExp): pExp =
+    match e with
+        | Term(n,m) -> e
+        | Plus(lis) -> Plus(simplify1_plus lis) (* TODO *)
+        | Times(lis) -> Times(simplify1_times lis) (* TODO *)
+
+and simplify1_plus (lis : pExp list) : pExp list = lis
+    (* match lis with
+        | hd::[] ->  *)
+
+and simplify1_times (lis : pExp list) : pExp list = lis
 
 (*Compute if two pExp are the same
   Make sure this code works before you work on simplify1
 *)
-let equal_pExp (_e1: pExp) (_e2: pExp) :bool =
-  true
+let rec equal_pExp (e1: pExp) (e2: pExp) : bool =
+    match e1 with
+        | Term(n1,m1) -> (
+            match e2 with
+                | Term(n2,m2) -> ((m1=m2) && (n1=n2))
+                | Plus(_) -> false
+                | Times(_) -> false
+        )
+        | Plus(lis1) -> (
+            match e2 with
+                | Term(_,_) -> false
+                | Plus(lis2) -> (equal_list lis1 lis2)
+                | Times(_) -> false
+        )
+        | Times(lis1) -> (
+            match e2 with
+                | Term(_,_) -> false
+                | Plus(_) -> false
+                | Times(lis2) -> (equal_list lis1 lis2)
+        )
+
+and equal_list (lis1: pExp list) (lis2: pExp list) : bool = 
+    match lis1 with
+        | [] -> (
+            match lis2 with
+                | [] -> true
+                | _ -> false
+        )
+        | hd1::tl1 -> (
+            match lis2 with
+                | [] -> false
+                | hd2::tl2 -> (
+                    match (equal_pExp hd1 hd2) with
+                        | false -> false
+                        | true -> (
+                            equal_list tl1 tl2
+                        )
+                )
+        )
 
 (* Fixed point version of simplify1
   i.e. Apply simplify1 until no progress is made
