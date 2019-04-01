@@ -11,6 +11,8 @@ type pExp =
     (* List of terms added Plus([Term(2,1); Term(1,0)]) *)
   | Times of pExp list (* List of terms multiplied *)
 
+
+
 (* Function to traslate betwen AST expressions to pExp expressions *)
 let rec from_expr (_e: Expr.expr) : pExp =
     match _e with
@@ -40,11 +42,12 @@ let rec from_expr (_e: Expr.expr) : pExp =
         | Neg(exp) -> (
             Times([Term(-1,0); from_expr exp])
         )
-
 and pow_expr(accum: pExp list) (e: pExp) (n: int) : (pExp list) =
     match n with
         | 0 -> accum
         | _ -> pow_expr (accum@[e]) e (n-1)
+
+
 
 (*Compute degree of a polynomial expression.
     Hint 1: Degree of Term(n,m) is m
@@ -56,7 +59,6 @@ let rec degree (_e:pExp): int =
         | Term(n,m) -> m
         | Plus(lis) -> deg_plus lis 0
         | Times(lis) -> deg_times lis 0
-
 and deg_plus (lis : pExp list) (curMax : int) : int =
     match lis with
         | [] -> curMax
@@ -66,7 +68,6 @@ and deg_plus (lis : pExp list) (curMax : int) : int =
                 | Plus(l) -> max curMax (deg_plus l 0)
                 | Times(l) -> max curMax (deg_times l 0)
         )
-
 and deg_times (lis : pExp list) (accum : int) : int =
     match lis with
         | [] -> accum
@@ -77,26 +78,15 @@ and deg_times (lis : pExp list) (accum : int) : int =
                 | Times(l) -> accum + (deg_times l 0)
         )
 
+
+
 (* Comparison function useful for sorting of Plus[..] args to "normalize
     them". This way, terms that need to be reduced show up one after another.
   *)
 let compare (e1: pExp) (e2: pExp) : bool =
   degree e1 > degree e2
 
-let print_pow (m: int) : unit = 
-    match m with
-        | 0 -> ( 
-            print_string "1";
-            ()
-        )
-        | 1 -> (
-            print_string "x";
-            ()
-        )
-        | _ -> (
-            print_string ("x^" ^ (string_of_int m));
-            ()
-        )
+
 
 (* Print a pExpr nicely
   Term(3,0) -> 3
@@ -141,7 +131,6 @@ let rec print_pExp (e: pExp) : unit =
             print_string ")";
             ()
         )
-
 and print_pExp_list (lis : pExp list) (symbol : string) : unit =
     match lis with 
         (* If the list is empty, return *)
@@ -157,6 +146,8 @@ and print_pExp_list (lis : pExp list) (symbol : string) : unit =
             print_pExp hd;
             ()
         )
+
+
 
 (*Function to simplify (one pass) pExpr
 
@@ -241,9 +232,6 @@ let rec fastexpt : int -> int -> int = fun b n ->
     let b2 = fastexpt b (n / 2) in
     if n mod 2 = 0 then b2 * b2 
     else b * b2 * b2
-
-
-
 (* evaluate a pExp at a given x value *)
 let rec evaluate_pExp (exp: pExp) (x: int) : int =
     match exp with
@@ -260,10 +248,18 @@ and evaluate_plus_list (lis: pExp list) (x: int) : int =
         | hd::tl -> (evaluate_pExp hd x)+(evaluate_plus_list tl x)
 
 
-(* TODO *)
-(* Helper fucntion used below for the equal_pExp_numeric fxn *)
-let equal_pExp_numeric_helper (exp1: pExp) (exp2: pExp) (n: int) : bool = true
 
+(* Helper fucntion used below for the equal_pExp_numeric fxn. Evaluates from n downto 0 for a total of n+1 evaluations *)
+let rec countdown_eval (exp1: pExp) (exp2: pExp) (n: int) : bool =
+    match n < 0 with
+        | true -> true
+        | false -> (
+            let res1 = (evaluate_pExp exp1 n) in
+                let res2 = (evaluate_pExp exp2 n) in
+                    match res1=res2 with
+                        | false -> false
+                        | true -> (countdown_eval exp1 exp2 (n-1))
+        )
 (* Compute if two pExp are the same.
    This computes numerical equality, i.e. the type of equality
    where the polynomials produce the same output given input.
@@ -272,7 +268,9 @@ let equal_pExp_numeric (exp1: pExp) (exp2: pExp) : bool =
     let deg1 = degree exp1 in
         let deg2 = degree exp2 in
             let maxDeg = (max deg1 deg2) in
-                (equal_pExp_numeric_helper exp1 exp2 maxDeg)
+                (countdown_eval exp1 exp2 maxDeg)
+
+
 
 (* Fixed point version of simplify1
   i.e. Apply simplify1 until no progress is made
