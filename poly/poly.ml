@@ -117,12 +117,16 @@ let rec print_pExp (e: pExp) : unit =
                     ()
                 )
                 | 1 -> (
-                    ();
-                    print_pow m
+                    match m with 
+                        | 0 -> print_string (string_of_int n)
+                        | 1 -> print_string "x"
+                        | _ -> print_string ("x^"^(string_of_int m))
                 )
                 | _ -> (
-                    print_string (string_of_int n);
-                    print_pow m
+                    match m with 
+                        | 0 -> print_string (string_of_int n)
+                        | 1 -> print_string ((string_of_int n)^"x")
+                        | 2 -> print_string ((string_of_int n)^"x^"^(string_of_int m))
                 )
         )
         | Plus(l) -> (
@@ -147,6 +151,40 @@ and print_pExp_list (lis : pExp list) (symbol : string) : unit =
             print_pExp hd;
             print_string symbol;
             print_pExp_list ([nxt]@tl) symbol
+        )
+        (* If the list contains 1 element only, print the element and return *)
+        | hd::tl -> (
+            print_pExp hd;
+            ()
+        )
+
+(* the same as print_times, but with addition symbols instead of multiplication symbols *)
+and print_plus (lis: pExp list) : unit =
+    match lis with
+        (* If the list is empty, return *)
+        | [] -> ()
+        (* If list contains 2 or more elements, print the first element, followed by a plus sign, and then recurse *)
+        | hd::nxt::tl -> (
+            print_pExp hd;
+            print_string " + ";
+            print_plus ([nxt]@tl)
+        )
+        (* If the list contains 1 element only, print the element and return *)
+        | hd::tl -> (
+            print_pExp hd;
+            ()
+        )
+
+(* the same as print_plus, but with multiplication symbols instead of addition symbols *)
+and print_times (lis: pExp list) : unit =
+    match lis with
+        (* If the list is empty, return *)
+        | [] -> ()
+        (* If list contains 2 or more elements, print the first element, followed by a plus sign, and then recurse *)
+        | hd::nxt::tl -> (
+            print_pExp hd;
+            print_string " * ";
+            print_times ([nxt]@tl)
         )
         (* If the list contains 1 element only, print the element and return *)
         | hd::tl -> (
