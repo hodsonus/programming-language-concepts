@@ -98,7 +98,7 @@ let compare (e1: pExp) (e2: pExp) : bool =
   Hint 1: Print () around elements that are not Term(
   Hint 2: Recurse on the elements of Plus[..] or Times[..]
 *)
-let rec print_pExp (e: pExp) : unit =
+let rec print_pExp_helper (e: pExp) : unit =
     match e with
         | Term(n, m) -> (
             match n with
@@ -137,47 +137,19 @@ and print_pExp_list (lis : pExp list) (symbol : string) : unit =
         | [] -> ()
         (* If list contains 2 or more elements, print the first element, followed by the symbol, and then recurse *)
         | hd::nxt::tl -> (
-            print_pExp hd;
+            print_pExp_helper hd;
             print_string symbol;
             print_pExp_list ([nxt]@tl) symbol
         )
         (* If the list contains 1 element only, print the element and return *)
         | hd::tl -> (
-            print_pExp hd;
+            print_pExp_helper hd;
             ()
         )
-
-
-
-(*Function to simplify (one pass) pExpr
-
-  n1 x^m1 * n2 x^m2 -> n1*n2 x^(m1+m2)
-  Term(n1,m1)*Term(n2,m2) -> Term(n1*n2,m1+m2)
-
-  Hint 1: Keep terms in Plus[...] sorted
-  Hint 2: flatten plus, i.e. Plus[ Plus[..], ..] => Plus[..]
-  Hint 3: flatten times, i.e. times of times is times
-  Hint 4: Accumulate terms. Term(n1,m)+Term(n2,m) => Term(n1+n2,m)
-          Term(n1, m1)*Term(n2,m2) => Term(n1*n2, m1+m2)
-  Hint 5: Use distributivity, i.e. Times[Plus[..],] => Plus[Times[..],]
-    i.e. Times[Plus[Term(1,1); Term(2,2)]; Term(3,3)]
-      => Plus[Times[Term(1,1); Term(3,3)]; Times[Term(2,2); Term(3,3)]]
-      => Plus[Term(2,3); Term(6,5)]
-  Hint 6: Find other situations that can arise
-*)
-let rec simplify1 (e:pExp): pExp =
-    match e with
-        | Term(n,m) -> e
-        | Plus(lis) -> Plus(simplify1_plus lis) (* TODO *)
-        | Times(lis) -> Times(simplify1_times lis) (* TODO *)
-
-and simplify1_plus (lis : pExp list) : pExp list = lis
-    (* match lis with
-        | hd::[] ->  *)
-
-and simplify1_times (lis : pExp list) : pExp list = lis
-
-
+let print_pExp (e: pExp) : unit =
+    print_pExp_helper e;
+    print_string "\n";
+    ()
 
 
 (* Compute if two pExp are the same
@@ -222,6 +194,85 @@ and equal_list (lis1: pExp list) (lis2: pExp list) : bool =
                             equal_list tl1 tl2
                         )
                 )
+        )
+
+
+
+let rec bubbleSort (lis: pExp list) : (pExp list) = 
+    let sorted = 
+        match lis with
+            | hd1 :: hd2 :: tl -> (
+                match (compare hd1 hd2) with 
+                | true -> hd2 :: bubbleSort (hd1 :: tl)
+                | false -> hd1 :: bubbleSort (hd2 :: tl)
+            )
+            | tl -> tl
+    in match (equal_list lis sorted) with
+        | true -> lis (* fixed point, the list is sorted *)
+        | false -> bubbleSort sorted (* recurse and pass over the list again *)
+
+let flattenPlusses (lis: pExp list):  (pExp list) = lis (* TODO *)
+
+let combinePlusTerms (lis: pExp list):  (pExp list) = lis (* TODO *)
+
+let rec remove0Terms (accum: pExp list) (lis: pExp list) :  (pExp list) = (* TODO *)
+    match lis with
+        | [] -> accum
+        | hd::tl -> (
+            match hd with
+                | Term(n,m) -> (
+                    match n with
+                        | 0 -> remove0Terms accum tl
+                        | _ -> remove0Terms (accum@[hd]) tl
+                )
+                | _ -> remove0Terms (accum@[hd]) tl
+        )
+
+(*Function to simplify (one pass) pExpr
+
+  n1 x^m1 * n2 x^m2 -> n1*n2 x^(m1+m2)
+  Term(n1,m1)*Term(n2,m2) -> Term(n1*n2,m1+m2)
+
+  Hint 1: Keep terms in Plus[...] sorted
+  Hint 2: flatten plus, i.e. Plus[ Plus[..], ..] => Plus[..]
+  Hint 3: flatten times, i.e. times of times is times
+  Hint 4: Accumulate terms. Term(n1,m)+Term(n2,m) => Term(n1+n2,m)
+          Term(n1, m1)*Term(n2,m2) => Term(n1*n2, m1+m2)
+  Hint 5: Use distributivity, i.e. Times[Plus[..],] => Plus[Times[..],]
+    i.e. Times[Plus[Term(1,1); Term(2,2)]; Term(3,3)]
+      => Plus[Times[Term(1,1); Term(3,3)]; Times[Term(2,2); Term(3,3)]]
+      => Plus[Term(2,3); Term(6,5)]
+  Hint 6: Find other situations that can arise
+*)
+let rec simplify1 (e:pExp): pExp =
+    match e with
+        | Term(n,m) -> e
+        | Plus(lis) -> Plus(simplify1_plus lis)
+        | Times(lis) -> Times(simplify1_times lis)
+(* Where does distributivity, i.e. hint 5, fit in? *)
+and simplify1_plus (lis : pExp list) : pExp list = (* TODO *)
+    (* 1. Iterate over the list and call simplify1 on each of the expressions. *)
+    let lis1 = simplify1_list [] lis in 
+        (* 2. flatten plusses, i.e. hint 2 *)
+        let lis2 = flattenPlusses lis1 in
+            (* 3. sort the list by degree of each pExp in the list, i.e. hint 1 *)
+            let lis3 = bubbleSort lis2 in
+                (* 4. iterate over list and combine Terms** with like exponents (pretty sure we should be only attempting to combine like exponents between terms, NOT any pExp), keeping track of the previous term and the current term. if the rpevious term has teh same degree as the current term, replace both the previous term, say Term(n1,m), and the current term, say Term(n2,m) with Term(n1+n2,m), i.e. hint 4 *)
+                let lis4 =  combinePlusTerms lis3 in
+                    (* 5. remove any terms with n = 0 *)
+                    remove0Terms [] lis4
+and simplify1_times (lis : pExp list) : pExp list = (* TODO *)
+    (* 1. Iterate over the list and call simplify1 on each of the expressions. *)
+    let lis1 = simplify1_list [] lis in 
+        lis1
+        (* 2. Flatten all of the multiplication, i.e. hint 3 *)
+        (* 3. Iterate over the list and accumulate terms. Term(n1, m1)*Term(n2,m2) => Term(n1*n2, m1+m2). This can only be done between consecutive terms, so we must simplify all the components first. *)
+and simplify1_list (accum : pExp list) (lis: pExp list) : (pExp list) =
+    match lis with
+        | [] -> accum
+        | hd::tl -> (
+            let res = simplify1 hd in
+                simplify1_list (accum@[res]) tl
         )
 
 
