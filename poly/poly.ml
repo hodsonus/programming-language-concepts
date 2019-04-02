@@ -408,8 +408,13 @@ let equal_pExp_numeric (exp1: pExp) (exp2: pExp) : bool =
 *)
 let rec simplify (e:pExp): pExp =
     let rE = simplify1(e) in
-      print_pExp rE;
-      if (equal_pExp e rE) then
-        e
-      else
-        simplify(rE)
+      let areEquiv = equal_pExp_numeric rE e in
+        match areEquiv with
+        | true -> (
+            print_pExp rE;
+            if (equal_pExp e rE) then
+                e
+            else
+                simplify(rE)
+        )
+        | false -> raise(Failure("Error in simplification."))
