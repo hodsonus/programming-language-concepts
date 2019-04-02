@@ -204,7 +204,7 @@ let rec bubbleSort (lis: pExp list) : (pExp list) =
     let sorted = 
         match lis with
             | hd1 :: hd2 :: tl -> (
-                print_string "bubblesorting ";
+                (* print_string "bubblesorting "; *)
                 match (compare hd1 hd2) with 
                 | true -> hd2 :: bubbleSort (hd1 :: tl)
                 | false -> hd1 :: bubbleSort (hd2 :: tl)
@@ -244,7 +244,7 @@ let rec combinePlusTerms (accum: pExp list) (lis: pExp list):  (pExp list) =
         )
         | hd::[] -> (accum@[hd]) (* Nothing left, so we return *)
 
-let rec remove0Terms (accum: pExp list) (lis: pExp list) :  (pExp list) = (* TODO *)
+let rec remove0Terms (accum: pExp list) (lis: pExp list) :  (pExp list) =
     match lis with
         | [] -> accum
         | hd::tl -> (
@@ -339,7 +339,7 @@ and simplify1_plus (lis : pExp list) : pExp list =
                 let lis4 =  combinePlusTerms [] lis3 in
                     (* 5. remove any terms with n = 0 *)
                     remove0Terms [] lis4
-and simplify1_times (lis : pExp list) : pExp list = (* TODO *)
+and simplify1_times (lis : pExp list) : pExp list =
     (* 1. Iterate over the list and call simplify1 on each of the expressions. *)
     let lis1 = simplify1_list [] lis in 
         (* 2. Flatten all of the multiplication, i.e. hint 3 *)
