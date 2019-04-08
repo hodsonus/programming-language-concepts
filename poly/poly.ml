@@ -324,7 +324,17 @@ and multiplyExps (l: pExp) (r: pExp) : (pExp list) =
         match r with
         | Times(_) -> distrElemLis [] l (distrListTop [] [r])
         | _ -> (
-            []
+            match l with
+            | Plus(lis1) -> (
+                match r with
+                | Plus(lis2) -> distrLisLis [] lis1 lis2
+                | Term(n2,m2) -> distrElemLis [] r lis1
+            )
+            | Term(n1,m1) -> (
+                match r with
+                | Plus(lis2) -> distrElemLis [] l lis2
+                | Term(n2,m2) -> [Term(n1*n2,m1+m2)]
+            )
         )
     )
 
@@ -357,21 +367,19 @@ let rec simplify1 (e:pExp): pExp =
 and simplify1_plus (lis : pExp list) : pExp list =
     (* 1. flatten plusses, i.e. hint 2 *)
     let lis1 = flattenPlusses [] lis in
-        (* 5. distribute, i.e. hint 5 *)
-        let lisd = distrListTop [] lis1 in
-            (* 3. sort the list by degree of each pExp in the list, i.e. hint 1 *)
-            let lis2 = bubbleSort lisd in
-                (* 1. Iterate over the list and call simplify1 on each of the expressions. *)
-                let lis3 = simplify1_list [] lis2 in
-                    (* 4. iterate over list and combine Terms** with like exponents
-                    (pretty sure we should be only attempting to combine like exponents
-                    between terms, NOT any pExp), keeping track of the previous term and
-                    the current term. if the rpevious term has teh same degree as the
-                    current term, replace both the previous term, say Term(n1,m), and the
-                    current term, say Term(n2,m) with Term(n1+n2,m), i.e. hint 4 *)
-                    let lis4 = combinePlusTerms [] lis3 in
-                        (* 5. remove any terms with n = 0 *)
-                        remove0Terms [] lis4
+        (* 3. sort the list by degree of each pExp in the list, i.e. hint 1 *)
+        let lis2 = bubbleSort lis1 in
+            (* 1. Iterate over the list and call simplify1 on each of the expressions. *)
+            let lis3 = simplify1_list [] lis2 in
+                (* 4. iterate over list and combine Terms** with like exponents
+                (pretty sure we should be only attempting to combine like exponents
+                between terms, NOT any pExp), keeping track of the previous term and
+                the current term. if the rpevious term has teh same degree as the
+                current term, replace both the previous term, say Term(n1,m), and the
+                current term, say Term(n2,m) with Term(n1+n2,m), i.e. hint 4 *)
+                let lis4 = combinePlusTerms [] lis3 in
+                    (* 5. remove any terms with n = 0 *)
+                    remove0Terms [] lis4
 and simplify1_times (lis : pExp list) : pExp list =
     (* 1. Iterate over the list and call simplify1 on each of the expressions. *)
     let lis1 = simplify1_list [] lis in
