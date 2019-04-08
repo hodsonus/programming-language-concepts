@@ -288,55 +288,68 @@ let extractSingleElement (e: pExp) :  pExp =
         )
         | _ -> e
 
-(* recursively find Times nodes in a pexp list and call to distribute each *)
-let rec distrListTop (acc: pExp list) (lis: pExp list) : (pExp list) =
-    match lis with
-    | [] -> acc (* return completed accummulator *)
-    | hd::tl -> (
-        match hd with
-        | Term(_,_) -> distrListTop (acc@[hd]) tl (* append Term onto acc *)
-        | Plus(l) -> (* recursive call to find nested Times and append onto acc *)
-            distrListTop (acc@[Plus(distrListTop [] l)]) tl
-        | Times(l) -> (* distr Times elements if any, recurse for nested Times, append *)
-            distrListTop (acc@[Plus(distrListTop [] (distrTimes [] l))]) tl
-    )
-(* distr all elements in a Times node, lis, over acc until lis is empty *)
-and distrTimes (acc: pExp list) (lis: pExp list) : (pExp list) =
-    match lis with
-    | [] -> acc (* return completed accummulator *)
-    | hd::tl -> (* recurse with acc*lis.hd and lis.tl *)
-        distrTimes (distrLisLis [] acc (distrListTop [] [hd])) tl
-(* recursively destroy left [Plus] list while distributing into acc *)
-and distrLisLis (acc: pExp list) (l: pExp list) (r: pExp list) : (pExp list) =
-    match l with
-    | [] -> acc
-    | hd::tl -> distrLisLis (acc@(distrElemLis [] hd r)) tl r
-(* recursively destroy right [Plus] list while distributing into acc *)
-and distrElemLis (acc: pExp list) (l: pExp) (r: pExp list) : (pExp list) =
-    match r with
-    | [] -> acc
-    | hd::tl -> distrElemLis (acc@(multiplyExps l hd)) l tl
-and multiplyExps (l: pExp) (r: pExp) : (pExp list) =
-    (* call to distribute times here for top down recursion? *)
-    match l with
-    | Times(_) -> distrElemLis [] r (distrListTop [] [l])
-    | _ -> (
-        match r with
-        | Times(_) -> distrElemLis [] l (distrListTop [] [r])
-        | _ -> (
-            match l with
-            | Plus(lis1) -> (
-                match r with
-                | Plus(lis2) -> distrLisLis [] lis1 lis2
-                | Term(n2,m2) -> distrElemLis [] r lis1
-            )
-            | Term(n1,m1) -> (
-                match r with
-                | Plus(lis2) -> distrElemLis [] l lis2
-                | Term(n2,m2) -> [Term(n1*n2,m1+m2)]
-            )
+let rec simplifyTimesList (lis : pExp list) : (pExp list) =
+    match lis with 
+    | [] -> []
+    | hd::[] -> [hd]
+    | hd::nxt::tl -> (  simplifyTimesList ([multiplyTwoPolyExprs hd nxt]@tl)  )
+
+and multiplyTwoPolyExprs (e1 : pExp) (e2 : pExp) : (pExp) = 
+    match e1 with
+        | Term(n1,m1) -> (
+            match e2 with
+                | Term(n2,m2) -> (
+                    Term(n1*n2, m1+m2)
+                )
+                | Times(lis2) -> (
+                    Times(  (simplifyTimesList lis2@[e1])  )
+                )
+                | Plus(lis2) -> (
+                    Plus(  multiplyExpIntoPlus [] e1 lis2  )
+                )
         )
-    )
+        | Times(lis1) -> (
+            let simplifiedLis1 = simplifyTimesList lis1 in
+                match e2 with
+                    | Term(n2,m2) -> (
+                        Times(  (simplifyTimesList simplifiedLis1@[e2])  )
+                    )
+                    | Times(lis2) -> (
+                        Times(  (simplifyTimesList simplifiedLis1@lis2)  )
+                    )
+                    | Plus(lis2) -> (
+                        Plus(   multiplyExpIntoPlus [] (Times(simplifiedLis1)) lis2   )
+                    )
+        )
+        | Plus(lis1) -> (
+            match e2 with
+                | Term(n2,m2) -> (
+                    Plus(  multiplyExpIntoPlus [] e2 lis1  )
+                )
+                | Times(lis2) -> (
+                    let simplifiedLis2 = simplifyTimesList lis2 in
+                        Plus(   multiplyExpIntoPlus [] (Times(simplifiedLis2)) lis1   )
+                )
+                | Plus(lis2) -> (
+                    Plus(multiplyPlusIntoPlus [] lis1 lis2)
+                )
+        )
+
+(* returns a plus list *)
+and multiplyExpIntoPlus (accum : pExp list) (e : pExp) (lis : pExp list) : (pExp list) = 
+    match lis with 
+        | [] -> accum
+        | hd::tl -> (
+            multiplyExpIntoPlus (accum@[   Times(simplifyTimesList ([e]@[hd]))    ]) e tl
+        )
+
+(* returns a plus list *)
+and multiplyPlusIntoPlus (accum : pExp list) (lis1 : pExp list) (lis2 : pExp list) : (pExp list) = 
+    match lis1 with
+        | [] -> accum
+        | hd::tl -> (
+            multiplyPlusIntoPlus (accum@(multiplyExpIntoPlus [] hd lis2)) tl lis2
+        )
 
 (*Function to simplify (one pass) pExpr
   n1 x^m1 * n2 x^m2 -> n1*n2 x^(m1+m2)
@@ -367,26 +380,29 @@ let rec simplify1 (e:pExp): pExp =
 and simplify1_plus (lis : pExp list) : pExp list =
     (* 1. flatten plusses, i.e. hint 2 *)
     let lis1 = flattenPlusses [] lis in
-        (* 3. sort the list by degree of each pExp in the list, i.e. hint 1 *)
-        let lis2 = bubbleSort lis1 in
-            (* 1. Iterate over the list and call simplify1 on each of the expressions. *)
-            let lis3 = simplify1_list [] lis2 in
-                (* 4. iterate over list and combine Terms** with like exponents
-                (pretty sure we should be only attempting to combine like exponents
-                between terms, NOT any pExp), keeping track of the previous term and
-                the current term. if the rpevious term has teh same degree as the
-                current term, replace both the previous term, say Term(n1,m), and the
-                current term, say Term(n2,m) with Term(n1+n2,m), i.e. hint 4 *)
-                let lis4 = combinePlusTerms [] lis3 in
-                    (* 5. remove any terms with n = 0 *)
-                    remove0Terms [] lis4
+        (* 5. distribute, i.e. hint 5 *)
+        (* let lisd = distrListTop [] lis1 in *)
+            (* 3. sort the list by degree of each pExp in the list, i.e. hint 1 *)
+            let lis2 = bubbleSort lis1 in
+                (* 1. Iterate over the list and call simplify1 on each of the expressions. *)
+                let lis3 = simplify1_list [] lis2 in
+                    (* 4. iterate over list and combine Terms** with like exponents
+                    (pretty sure we should be only attempting to combine like exponents
+                    between terms, NOT any pExp), keeping track of the previous term and
+                    the current term. if the rpevious term has teh same degree as the
+                    current term, replace both the previous term, say Term(n1,m), and the
+                    current term, say Term(n2,m) with Term(n1+n2,m), i.e. hint 4 *)
+                    let lis4 = combinePlusTerms [] lis3 in
+                        (* 5. remove any terms with n = 0 *)
+                        remove0Terms [] lis4
 and simplify1_times (lis : pExp list) : pExp list =
     (* 1. Iterate over the list and call simplify1 on each of the expressions. *)
     let lis1 = simplify1_list [] lis in
         (* 2. Flatten all of the multiplication, i.e. hint 3 *)
         let lis2 = flattenTimes [] lis1 in
             (* 3. Iterate over the list and accumulate terms. Term(n1, m1)*Term(n2,m2) => Term(n1*n2, m1+m2). This can only be done between consecutive terms, so we must simplify all the components first. *)
-            accumulateTimesTerms [] lis2
+            let lis3 = accumulateTimesTerms [] lis2 in 
+                simplifyTimesList lis3
 and simplify1_list (accum : pExp list) (lis: pExp list) : (pExp list) =
     match lis with
         | [] -> accum
