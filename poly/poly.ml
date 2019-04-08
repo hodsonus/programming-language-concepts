@@ -288,61 +288,45 @@ let extractSingleElement (e: pExp) :  pExp =
         )
         | _ -> e
 
-let extractAllElements (e: pExp) :  pExp list =
-    match e with
-        | Times(lis) -> lis
-        | Plus(lis) -> lis
-        | _ -> []
-
-(* co-recursively find Times nodes in a pexp list and distribute each *)
+(* recursively find Times nodes in a pexp list and call to distribute each *)
 let rec distrListTop (acc: pExp list) (lis: pExp list) : (pExp list) =
     match lis with
     | [] -> acc (* return completed accummulator *)
     | hd::tl -> (
         match hd with
         | Term(_,_) -> distrListTop (acc@[hd]) tl (* append Term onto acc *)
-        | Plus(l) -> (
-            (* recursive call to find nested Times and append onto acc *)
-            (* be sure Plus() reconstruction is done here after extracting Plus(l) *)
+        | Plus(l) -> (* recursive call to find nested Times and append onto acc *)
             distrListTop (acc@[Plus(distrListTop [] l)]) tl
-        )
-        | Times(l) -> (
-            (* distr Times elements if any, recurse for nested Times, append *)
-            (* be sure Times() reconstruction is done here after extracting Times(l) *)
-            distrListTop (acc@[Times(distrTimes l)]) tl
-        )
+        | Times(l) -> (* distr Times elements if any, recurse for nested Times, append *)
+            distrListTop (acc@[Plus(distrListTop [] (distrTimes [] l))]) tl
     )
 (* distr all elements in a Times node, lis, over acc until lis is empty *)
-and distrTimes (lis: pExp list) : (pExp list) =
+and distrTimes (acc: pExp list) (lis: pExp list) : (pExp list) =
     match lis with
-    | [] -> lis (* empty Times, allow [] to flow through logic *)
-    | hd1::[] -> distrListTop [] lis (* recurse to check for nested Times *)
-    | hd1::hd2::[] -> (
-        (* TODO - this line and down *)
-        (* eval components for nested times, distribute *)
-        distrLisLis [] (distrListTop [] l1) (distrListTop [] l2)
-    )
-    | hd1::hd2::tl -> (
-        (*  *)
-        distrTimes ((distrLisLis (distrListTop [] l1) (distrListTop [] l2))@tl)
-    )
-(* recursively destroy left list and distr over right list *)
-and distrLisLis (acc: pExp list) (lp: pExp) (rp: pExp) : (pExp list) =
+    | [] -> acc (* return completed accummulator *)
+    | hd::tl -> (* recurse with acc*lis.hd and lis.tl *)
+        distrTimes (distrLisLis [] acc (distrListTop [] [hd])) tl
+(* recursively destroy left [Plus] list while distributing into acc *)
+and distrLisLis (acc: pExp list) (l: pExp list) (r: pExp list) : (pExp list) =
     match l with
-    | [] -> ( acc )
-    | hd::tl -> (
-        let ll = extractAllElements lp in
-        let rl = extractAllElements rp in
-        distrLisLis (acc@(distrElemLis hd r)) tl r
-    )
-(* recursively destroy right list and distr over left elem *)
+    | [] -> acc
+    | hd::tl -> distrLisLis (acc@(distrElemLis [] hd r)) tl r
+(* recursively destroy right [Plus] list while distributing into acc *)
 and distrElemLis (acc: pExp list) (l: pExp) (r: pExp list) : (pExp list) =
     match r with
-    | [] -> ( acc )
-    | hd::tl -> ( distrElemLis (acc@multiplyExps l hd) l tl )
-and multiplyExps (l: pExp) (r: pExp) : (pExp) =
+    | [] -> acc
+    | hd::tl -> distrElemLis (acc@(multiplyExps l hd)) l tl
+and multiplyExps (l: pExp) (r: pExp) : (pExp list) =
+    (* call to distribute times here for top down recursion? *)
     match l with
-    | _ -> Term(1,2)
+    | Times(_) -> distrElemLis [] r (distrListTop [] [l])
+    | _ -> (
+        match r with
+        | Times(_) -> distrElemLis [] l (distrListTop [] [r])
+        | _ -> (
+            []
+        )
+    )
 
 (*Function to simplify (one pass) pExpr
   n1 x^m1 * n2 x^m2 -> n1*n2 x^(m1+m2)
