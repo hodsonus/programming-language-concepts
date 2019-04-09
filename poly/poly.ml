@@ -41,9 +41,17 @@ let rec from_expr (_e: Expr.expr) : pExp =
             Times([Term(-1,0); from_expr exp])
         )
 and pow_expr(accum: pExp list) (e: pExp) (n: int) : (pExp list) =
-    match n with
-        | 0 -> accum
-        | _ -> pow_expr (accum@[e]) e (n-1)
+    match (n < 0) with
+        | true -> raise(Failure("Negative Exponentiation is not allowed."))
+        | false -> (
+            match n with
+                | 0 -> (
+                    match accum with
+                        | [] -> [Term(1,0)]
+                        | _ -> accum
+                )
+                | _ -> pow_expr (accum@[e]) e (n-1)
+        )
 
 (*Compute degree of a polynomial expression.
     Hint 1: Degree of Term(n,m) is m
@@ -459,13 +467,8 @@ let equal_pExp_numeric (exp1: pExp) (exp2: pExp) : bool =
 *)
 let rec simplify (e:pExp): pExp =
     let rE = simplify1(e) in
-      let areEquiv = equal_pExp_numeric rE e in
-        match areEquiv with
-        | true -> (
-            print_pExp rE;
-            if (equal_pExp e rE) then
-                e
-            else
-                simplify(rE)
-        )
-        | false -> raise(Failure("Error in simplification."))
+        print_pExp rE;
+        if (equal_pExp e rE) then
+            e
+        else
+            simplify(rE)
