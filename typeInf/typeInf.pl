@@ -1,3 +1,49 @@
+% there is a debug mode - this changes the way that prolog compiles and then interprets the code
+% prolog USUALLY compiles the code after optimizing it
+% some of the code that is given below is a little bit subtle - some is not subtle
+
+% asserts
+    % 'asserta' adds a new definition for whatever you give - almoset behaves as a macro
+        % adds a new definition to gvars - becomes the most important one
+        % runs on unification - this system takes the place of hash tables in OCaml
+        % line 79 sets up the whole system, the call here prevents exceptions from being thrown when it sees no Gvars
+
+% infer cleans
+    % makes sure the code is a list
+    % deletes the global variables
+    % type code applys the type definitions
+    % infer is usually the function that we want to test
+
+% we have to write the code to define fucntions
+% test the functons in a specific way - add a fact with a name (my_funct, for example) and the input type to the output type
+
+% what he wants us to go and do
+    % figure out how you can represent every type of statemet - this is the equivalent of sum types in OCaml'
+        % this is necessary for the bonus
+
+% strong advice to us
+%     **reload the code**
+
+% be aware fo the following
+%     define some fxns that dont need to bind variables - let them work in a generic way
+%     in Ocaml, the type infrerence mechanism can say a' -> a' (alpha type to alpha type)
+
+% similarly to OCaml, loops are discouraged heavily
+
+% the only way to get things done here is through unification
+
+%  write negative tests so that it fails
+%  line 38 on the testing paltfor - put fails insteaf of nondet
+
+% add a gvar
+% 	when you delete them it
+
+% 	knock off the definition at the end
+% 	declare as dynamic ??
+% 	dynamic name_of_predicate
+
+% use **trace**, with or without the tests
+
 /* match functions by unifying with arguments 
     and infering the result
 */
@@ -90,7 +136,7 @@ fType(fplus, [float, float, float]).
 fType(fToInt, [float,int]).
 fType(iToFloat, [int,float]).
 fType(print, [_X, unit]). /* simple print */
-
+fType(identity, [T,T]). /* polymorphic function */
 /* Find function signature
    A function is either buld in using fType or
    added as a user definition with gvar(fct, List)
@@ -106,4 +152,6 @@ functionType(Name, Args) :-
     fType(Name, Args), !. % make deterministic
 
 % This gets wiped out but we have it here to make the linter happy
-gvar(_, _) :- false().
+% gvar(_, _) :- false().
+% a rule with no head, run it right now
+:- dynamic(gvar/2).
