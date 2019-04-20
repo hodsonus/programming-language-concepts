@@ -18,13 +18,13 @@
 % test the functons in a specific way - add a fact with a name (my_funct, for example) and the input type to the output type
 
 % what he wants us to go and do
-    % figure out how you can represent every type of statemet - this is the equivalent of sum types in OCaml'
+    % figure out how you can represent every type of statement - this is the equivalent of sum types in OCaml'
         % this is necessary for the bonus
 
 % strong advice to us
 %     **reload the code**
 
-% be aware fo the following
+% be aware of the following
 %     define some fxns that dont need to bind variables - let them work in a generic way
 %     in Ocaml, the type infrerence mechanism can say a' -> a' (alpha type to alpha type)
 
@@ -67,6 +67,8 @@ typeExpList([Hin|Tin], [Hout|Tout]):-
     typeExpList(Tin, Tout). /* recurse */
 
 /* TODO: add statements types and their type checking */
+
+
 /* global variable definition
     Example:
         gvLet(v, T, int) ~ let v = 3;
@@ -76,6 +78,30 @@ typeStatement(gvLet(Name, T, Code), unit):-
     typeExp(Code, T), /* infer the type of Code and ensure it is T */
     bType(T), /* make sure we have an infered type */
     asserta(gvar(Name, T)). /* add definition to database */
+
+% TODO, extra credit
+% all you need to do to define the if statement\
+
+% this is a super generic data structure
+% similar to tuples in other proogramming langeages
+
+% because we have thsi suepr general structure, so long
+% as we have stuff that recognizes things that can fit
+% into this general data structure then we are good
+
+% the only reason the f types and the b types are
+% designed are to organize the structure of the program better 
+typeStatement(if(Cond, TCode, FCode),T) :-
+    typeExp(Cond, bool),
+    typeCode(TCode, T),
+    typeCode(FCode, T),
+    bType(T).
+
+/* Expressions are statements */
+typeStatement(Expr, T) :-
+    typeExp(Expr,T).
+
+typeCode([],T) :- bType(T). % enforces no type for empty lists, a generic alpha type
 
 /* Code is simply a list of statements. The type is 
     the type of the last statement 
@@ -94,6 +120,7 @@ infer(Code, T) :-
 /* Basic types
     TODO: add more types if needed
  */
+bType(bool).
 bType(int).
 bType(float).
 bType(string).
@@ -105,6 +132,11 @@ bType(unit). /* unit type for things that are not expressions */
  */
 bType([H]):- bType(H).
 bType([H|T]):- bType(H), bType(T).
+
+% allow alpha types
+% with this, go into the if statements and ensure that we do not have free vars
+bType(T) :-
+    var(T).
 
 /*
     TODO: as you encounter global variable definitions
@@ -122,7 +154,9 @@ bType([H|T]):- bType(H), bType(T).
     variables. Best wy to do this is in your top predicate
 */
 
-deleteGVars():-retractall(gvar), asserta(gvar(_X,_Y):-false()).
+deleteGVars():-
+    retractall(gvar),
+    asserta(gvar(_X,_Y) :- false()).
 
 /*  builtin functions
     Each definition specifies the name and the 
@@ -130,7 +164,7 @@ deleteGVars():-retractall(gvar), asserta(gvar(_X,_Y):-false()).
 
     TODO: add more functions
 */
-
+fType('<', [float, float, bool]).
 fType(iplus, [int,int,int]).
 fType(fplus, [float, float, float]).
 fType(fToInt, [float,int]).
