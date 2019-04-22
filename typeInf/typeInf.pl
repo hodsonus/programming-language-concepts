@@ -13,12 +13,6 @@
     % type code applys the type definitions
     % infer is usually the function that we want to test
 
-% we have to write the code to define fucntions
-% test the functons in a specific way - add a fact with a name (my_funct, for example) and the input type to the output type
-
-% figure out how you can represent every type of statement - this is the equivalent of sum types in OCaml'
-% this is necessary for the bonus
-
 % be aware of the following
 %     define some fxns that dont need to bind variables - let them work in a generic way
 %     in Ocaml, the type infrerence mechanism can say a' -> a' (alpha type to alpha type)
@@ -26,14 +20,7 @@
 % the only way to get things done here is through unification
 
 %  write negative tests so that it fails
-%  line 38 on the testing paltfor - put fails insteaf of nondet
-
-% add a gvar
-% 	when you delete them it
-
-% 	knock off the definition at the end
-% 	declare as dynamic ??
-% 	dynamic name_of_predicate
+%  on the testing platform - put fails insteaf of nondet
 
 /*
     as you encounter global variable definitions
@@ -59,6 +46,14 @@ typeExp(Fct, T):-
     functionType(Fname, TArgs), /* get type of arguments from definition */
     typeExpList(FType, TArgs). /* recurisvely match types */
 
+typeExp(Lvar, T) :-
+    atom(Lvar),
+    lvar(Lvar, T).
+
+typeExp(Gvar, T) :-
+    atom(Gvar),
+    gvar(Gvar, T).
+
 /* propagate types */
 typeExp(T, T).
 
@@ -68,11 +63,19 @@ typeExpList([Hin|Tin], [Hout|Tout]):-
     typeExp(Hin, Hout), /* type infer the head */
     typeExpList(Tin, Tout). /* recurse */
 
-/* list version to allow block matching */
-typeStatementList([], []).
-typeStatementList([Hin|Tin], [Hout|Tout]):-
-    typeStatement(Hin, Hout), /* type infer the head */
-    typeStatementList(Tin, Tout). /* recurse */
+/* local variable definition
+    Example:
+        lvLet(v, T, int) ~ let v = 3 in ...;
+ */
+typeStatement(lvLet(VarName, VarType, VarDef, InCode), T) :-
+    atom(VarName), /* make sure we have a bound name */
+    typeExp(VarDef, VarType), /* infer the type of VarDef and ensure it is VarType */
+    bType(VarType), /* make sure we have an inferred type */
+    asserta(lvar(VarName, VarType)), /* add definition to local database */
+    typeCode(InCode, T), % type the code
+    retract(lvar(VarName, VarType)), % deassert the lvar, pop it from the local database
+    asserta(lvar(VarName, VarType) :- false()),
+    bType(T). % make sure that the type of the block is a valid type
 
 /* global variable definition
     Example:
@@ -113,14 +116,16 @@ typeStatement(for(Init, Cond, End, Code),T) :-
     bType(T).
 
 /* Code is simply a list of statements. The type is the type of the last statement */
-typeCode([S], T):-typeStatement(S, T).
-typeCode([S, S2|Code], T):-
+typeCode([S], T) :-
+    typeStatement(S, T).
+typeCode([S, S2|Code], T) :-
     typeStatement(S,_T),
     typeCode([S2|Code], T).
 
 /* top level function */
 infer(Code, T) :-
     is_list(Code), /* make sure Code is a list */
+    deleteLVars(), /* delete all local definitions */
     deleteGVars(), /* delete all global definitions */
     typeCode(Code, T).
 
@@ -131,8 +136,8 @@ bType(float).
 bType(string).
 bType(unit).
 
-/* Alpha types */
-bType(T) :- var(T).
+/* TODO, Alpha types */
+% bType(T) :- var(T).
 
 /* Functions type */
 % The type is a list, the last element is the return type and can be called as add(1,2)->3
@@ -143,6 +148,10 @@ bType([H|T]) :- bType(H), bType(T).
 deleteGVars() :-
     retractall(gvar),
     asserta(gvar(_X,_Y) :- false()).
+
+deleteLVars() :-
+    retractall(lvar),
+    asserta(lvar(_X,_Y) :- false()).
 
 fType(equal, [T, T, bool]).
 fType(nequal, [T, T, bool]).
@@ -175,21 +184,20 @@ fType(sConcat, [string, string, string]).
 
 fType(print, [_X, unit]). /* simple print */
 fType(identity, [T,T]). /* polymorphic function */
+
 /* Find function signature
    A function is either buld in using fType or
    added as a user definition with gvar(fct, List)
 */
-
-% Check the user defined functions first
-functionType(Name, Args):-
+functionType(Name, Args) :- % Check the user defined functions first
     gvar(Name, Args),
     is_list(Args). % make sure we have a function not a simple variable
 
-% Check first built in functions
-functionType(Name, Args) :-
+functionType(Name, Args) :- % Check first built in functions
     fType(Name, Args), !. % make deterministic
 
 % This gets wiped out but we have it here to make the linter happy
 % gvar(_, _) :- false().
 % a rule with no head, run it right now
+:- dynamic(lvar/2).
 :- dynamic(gvar/2).
