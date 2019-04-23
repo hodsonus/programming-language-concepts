@@ -46,10 +46,12 @@ typeExp(Fct, T):-
     functionType(Fname, TArgs), /* get type of arguments from definition */
     typeExpList(FType, TArgs). /* recurisvely match types */
 
+% look for local variables before global variables (thus global variables are below lcoal variables)
 typeExp(Lvar, T) :-
     atom(Lvar),
     lvar(Lvar, T).
 
+% look for global variables
 typeExp(Gvar, T) :-
     atom(Gvar),
     gvar(Gvar, T).
