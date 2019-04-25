@@ -1,0 +1,11 @@
+20.
+10.
+8.
+63.
+0.125
+Invalid RPN expression, not enough operands.
+Expression contains an invalid token.
+Invalid RPN expression, too many elements on the stack.
+5.4
+Expression contains an invalid token.
+-7.
