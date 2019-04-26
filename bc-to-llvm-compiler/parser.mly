@@ -43,7 +43,7 @@ delim:
 
 statementList:
     | statement delim+ statementList { [$1]@$3 }
-    | statement delim+               { [$1]      };
+    | statement delim+               { [$1]    };
 
 numArgList:
     | expr COMMA numArgList { [$1]@$3 }
@@ -51,13 +51,13 @@ numArgList:
 
 fxnArgList:
     | ID COMMA fxnArgList { [$1]@$3 }
-    | ID                  { [$1] }
+    | ID                  { [$1] };
 
 printList:
     | expr COMMA printList   { [PrintExpr($1)]@$3 }
     | STRING COMMA printList { [PrintString($1)]@$3 }
     | expr                   { [PrintExpr($1)] }
-    | STRING                 { [PrintString($1)] }
+    | STRING                 { [PrintString($1)] };
 
 expr:
     |   ID LEFT_PAR RIGHT_PAR            { FCall($1, []) }
@@ -87,22 +87,21 @@ expr:
     |   ID                               { Var($1) }
     |   NUM                              { Num($1) };
 
+block:
+    | statement delim { [$1] }
+    | LEFT_BRACE statementList RIGHT_BRACE { $2 };
+
+fxnArgs:
+    | LEFT_PAR fxnArgList RIGHT_PAR   { $2 }
+    | LEFT_PAR RIGHT_PAR              { [] };
+
 statement: 
     | expr    { Expr($1) }
-    | IF LEFT_PAR expr RIGHT_PAR NL? statement delim { If($3, [$6], []) } /* An if with no else, no brackets*/
-    | IF LEFT_PAR expr RIGHT_PAR NL? LEFT_BRACE statementList RIGHT_BRACE { If($3, $7, []) } /* An if with no else, with brackets*/
-    | IF LEFT_PAR expr RIGHT_PAR NL? statement delim ELSE NL? statement delim { If($3, [$6], [$10]) } /* An if with else, no brackets on either */
-    | IF LEFT_PAR expr RIGHT_PAR NL? LEFT_BRACE statementList RIGHT_BRACE ELSE NL? LEFT_BRACE statementList RIGHT_BRACE { If($3, $7, $12) } /* An if with else, brackets on both */
-    | IF LEFT_PAR expr RIGHT_PAR NL? LEFT_BRACE statementList RIGHT_BRACE ELSE NL? statement delim { If($3, $7, [$11]) } /* An if with else, brackets on if */
-    | IF LEFT_PAR expr RIGHT_PAR NL? statement delim ELSE NL? LEFT_BRACE statementList RIGHT_BRACE { If($3, [$6], $11) } /* An if with else, brackets on else */
-    | WHILE LEFT_PAR expr RIGHT_PAR NL? statement delim { While($3, [$6]) }
-    | WHILE LEFT_PAR expr RIGHT_PAR NL? LEFT_BRACE statementList RIGHT_BRACE { While($3, $7) }
-    | FOR LEFT_PAR expr SEMICOLON expr SEMICOLON expr RIGHT_PAR NL? statement delim { For($3, $5, $7, [$10]) }
-    | FOR LEFT_PAR expr SEMICOLON expr SEMICOLON expr RIGHT_PAR NL? LEFT_BRACE statementList RIGHT_BRACE { For($3, $5, $7, $11) }
-    | DEFINE ID LEFT_PAR fxnArgList RIGHT_PAR NL? statement delim { FDef($2, $4, [$7]) }
-    | DEFINE ID LEFT_PAR fxnArgList RIGHT_PAR NL? LEFT_BRACE statementList RIGHT_BRACE { FDef($2, $4, $8) }
-    | DEFINE ID LEFT_PAR RIGHT_PAR NL? statement delim { FDef($2, [], [$6]) }
-    | DEFINE ID LEFT_PAR RIGHT_PAR NL? LEFT_BRACE statementList RIGHT_BRACE { FDef($2, [], $7) } 
+    | IF LEFT_PAR expr RIGHT_PAR NL? block { If($3, $6, []) }
+    | IF LEFT_PAR expr RIGHT_PAR NL? block ELSE NL? block { If($3, $6, $9) }
+    | WHILE LEFT_PAR expr RIGHT_PAR NL? block { While($3, $6) }
+    | FOR LEFT_PAR expr SEMICOLON expr SEMICOLON expr RIGHT_PAR NL? block { For($3, $5, $7, $10) }
+    | DEFINE ID fxnArgs NL? block { FDef($2, $3, $5) }
     | RETURN expr { Return($2) }
     | RETURN { Return(None()) }
     | BREAK { Break() }

@@ -39,10 +39,12 @@ rule token = parse
   | "||"                             { OR }
   | '='                              { EQ }
   | ['0'-'9']*['.']['0'-'9']* as lxm { NUM (float_of_string lxm) }
+  | ['0'-'9']+ as lxm { NUM (float_of_string lxm) }
   | ['a'-'z']+['_']*['a'-'z']* as lxm{ ID (lxm) }
   | ['"']_*?['"'] as lxm             { STRING (lxm) }
   | ['\n']                           { NL }
   | eof                              { EOF }
+  | _ { raise (Failure (Printf.sprintf "At offset %d: unexpected character.\n" (Lexing.lexeme_start lexbuf))) }
 
 (* %token SEMICOLON
 %token PRINT
