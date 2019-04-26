@@ -33,8 +33,8 @@
 %left LTE LT GTE GT EQEQ NE
 %right NOT
 %left AND OR
-
 %right EQ
+
 
 %type <Bc.statement list> main
 %start main
@@ -48,7 +48,8 @@ delim:
 
 statementList:
     | statement delim+ statementList { [$1]@$3 }
-    | statement delim+               { [$1]    };
+    | statement delim*               { [$1]    }
+    | delim* statementList            {  $2     }
 
 numArgList:
     | expr COMMA numArgList { [$1]@$3 }

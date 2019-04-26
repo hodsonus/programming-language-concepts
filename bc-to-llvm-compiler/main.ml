@@ -1,8 +1,8 @@
 open Lexing
 open Parser
 open Lexer
-(* open MenhirBasics *)
 open Bc
+open MenhirLib
 
 let filename = Sys.argv.(1)
 
@@ -15,8 +15,5 @@ let () =
 let () = 
   let a = open_in filename in
     let b = Lexing.from_channel a in
-      try
-        let c = Parser.main Lexer.token b in
-          runCode c
-      with Error ->
-        raise(Failure("Errorasdasas"))
+      let c = Parser.main Lexer.token b in
+        runCode c
