@@ -27,9 +27,14 @@
 %token NL
 %token EOF
 
-%left PLUS MINUS
+%left PLUS MINUS MOD
 %left TIMES DIV
 %left POW
+%left LTE LT GTE GT EQEQ NE
+%right NOT
+%left AND OR
+
+%right EQ
 
 %type <Bc.statement list> main
 %start main
@@ -59,9 +64,12 @@ printList:
     | expr                   { [PrintExpr($1)] }
     | STRING                 { [PrintString($1)] };
 
+fCallArgs:
+    | LEFT_PAR RIGHT_PAR            { [] }
+    | LEFT_PAR numArgList RIGHT_PAR { $2 }
+
 expr:
-    |   ID LEFT_PAR RIGHT_PAR            { FCall($1, []) }
-    |   ID LEFT_PAR numArgList RIGHT_PAR { FCall($1, $3) }
+    |   ID fCallArgs                     { FCall($1, $2) }
     |   LEFT_PAR expr RIGHT_PAR          { $2 }
     |   ID PLUSPLUS                      { Op1("a++", Var($1)) }
     |   PLUSPLUS ID                      { Op1("++a", Var($2)) }
@@ -95,15 +103,18 @@ fxnArgs:
     | LEFT_PAR fxnArgList RIGHT_PAR   { $2 }
     | LEFT_PAR RIGHT_PAR              { [] };
 
-statement: 
-    | expr    { Expr($1) }
+ifStatement:
     | IF LEFT_PAR expr RIGHT_PAR NL? block { If($3, $6, []) }
-    | IF LEFT_PAR expr RIGHT_PAR NL? block ELSE NL? block { If($3, $6, $9) }
+    | IF LEFT_PAR expr RIGHT_PAR NL? block ELSE NL? block { If($3, $6, $9) };
+
+statement: 
+    | expr { Expr($1) }
+    | ifStatement { $1 }
     | WHILE LEFT_PAR expr RIGHT_PAR NL? block { While($3, $6) }
     | FOR LEFT_PAR expr SEMICOLON expr SEMICOLON expr RIGHT_PAR NL? block { For($3, $5, $7, $10) }
     | DEFINE ID fxnArgs NL? block { FDef($2, $3, $5) }
     | RETURN expr { Return($2) }
-    | RETURN { Return(None()) }
+    | RETURN { Return(ExprNone()) }
     | BREAK { Break() }
     | CONTINUE { Continue() }
     | PRINT printList { Print($2) }
@@ -117,12 +128,12 @@ type expr = (* a fragment of code *)
     | Op2    of string*expr*expr
     | Assign of string*expr
     | FCall  of string*expr list
-    | None   of unit
+    | ExprNone   of unit
 */
 /*
 type printElement =
-    | String of string
-    | Expr   of expr
+    | PrintString of string
+    | PrintExpr   of expr
 */
 /*
 type statement = (* a line of code *)

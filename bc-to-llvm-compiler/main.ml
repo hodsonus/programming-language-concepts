@@ -15,8 +15,8 @@ let () =
 let () = 
   let a = open_in filename in
     let b = Lexing.from_channel a in
-      (* try *)
+      try
         let c = Parser.main Lexer.token b in
           runCode c
-      (* with Parser.MenhirBasics.Error ->
-        raise(Failure("Error")) *)
+      with Error ->
+        raise(Failure("Errorasdasas"))

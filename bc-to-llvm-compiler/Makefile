@@ -9,11 +9,14 @@ clean:
 	rm -rf tests/*.out
 
 main.byte:
-	# ocamlbuild -use-menhir main.byte
-	ocamlbuild -use-ocamlfind -pkg core main.byte -tag thread
+	ocamlbuild $(OPTIONS) main.byte $(TAGS)
 
 tests/%.out: tests/%.in main.byte
 	./main.byte $< > $@
 
 tests: main.byte $(OUT_FILES)
 	@echo "Done testing. Results in tests dir."
+
+OPTIONS = -use-menhir -use-ocamlfind -pkgs core,menhirLib
+# -yaccflag --table -pkgs menhirLib,str,unix
+TAGS = -tag thread

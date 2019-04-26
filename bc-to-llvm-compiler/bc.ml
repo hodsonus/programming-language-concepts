@@ -10,7 +10,7 @@ type expr = (* a fragment of code *)
     | Op2    of string*expr*expr
     | Assign of string*expr
     | FCall  of string*expr list
-    | None   of unit
+    | ExprNone   of unit
 
 type printElement =
     | PrintString of string
@@ -241,7 +241,7 @@ let rec evalExpr (e: expr) (ss: scopeStack) (fs: fxns) (* : (float,scopeStack) *
             | _ -> raise(Failure ("Unknown function call to " ^ f ^ "."))
         )
     )
-    | None() -> (0.,ss)
+    | ExprNone() -> (0.,ss)
 
 (* performs a function call given a program state and returns a value and new state *)
 and evalFxn (fxn: fxndef) (el: expr list) (ss: scopeStack) (fs: fxns) (* : (float,scopeStack) *) =
@@ -293,7 +293,7 @@ and evalStatement (s: statement) (ss: scopeStack) (fs: fxns) (* scopeStack,fxns 
                             )
                             | _ -> ( (); ss1,fs )
                     )
-                    | None() -> ( (); ss1,fs )
+                    | ExprNone() -> ( (); ss1,fs )
                     | _ -> (
                         print_float flt;
                         Stdlib.print_string "\n";
