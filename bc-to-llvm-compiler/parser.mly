@@ -5,10 +5,9 @@
 %token SEMICOLON
 %token PRINT
 %token COMMA
-%token QUIT
 %token RETURN
 %token BREAK CONTINUE
-%token HALT
+/* %token HALT QUIT */
 %token LEFT_BRACE RIGHT_BRACE
 %token WHILE
 %token IF ELSE
@@ -19,7 +18,8 @@
 %token LTE LT GTE GT EQEQ NE
 %token NOT AND OR
 %token PLUSPLUS MINUSMINUS
-%token EQ PLUS_EQ MINUS_EQ TIMES_EQ DIV_EQ
+%token EQ
+/* %token PLUS_EQ MINUS_EQ TIMES_EQ DIV_EQ */
 /* NO BLOCK OR INLINE COMMENT RULES */
 %token <float> NUM
 %token <string> ID
