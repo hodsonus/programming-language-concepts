@@ -5,8 +5,9 @@ This was the repository that was used for the duration of my enrollment in COP40
 Programming Language Concepts with Professor Alin Dobra at the University of Florida.
 
 A variety of projects were completed and I gained exposure to compilers, interpreters,
-AST manipulation, and the tools associated with these concepts. We used ANTLR4/java or menhir/OCaml, depending on the project,
-for these kinds of problems.
+AST manipulation, and the tools associated with these concepts. We used ANTLR4 and java or menhir
+(a superset of ocamlyacc, http://gallium.inria.fr/~fpottier/menhir/) and OCaml, depending on
+the project, for these kinds of problems.
 
 Exposure to functional programming was also achieved. Professor Dobra talked about concepts
 associated with functional programming and demonstrated with OCaml tutorials in class. Most

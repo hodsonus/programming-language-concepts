@@ -2,7 +2,6 @@ open Lexing
 open Parser
 open Lexer
 open Bc
-open MenhirLib
 
 let filename = Sys.argv.(1)
 

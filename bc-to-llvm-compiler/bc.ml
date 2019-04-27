@@ -45,7 +45,7 @@ exception ReturnInProgress   of float*scopeStack
 exception BreakInProgress    of scopeStack
 exception ContinueInProgress of scopeStack
 
-(* ============================== functions ============================== *)
+(* ============================== evaluation in OCaml ============================== *)
 
 (* converts a float to a bool *)
 let bool_of_float (flt: float) : bool =
@@ -405,6 +405,7 @@ let runCode(blk: block): unit =
         | BreakInProgress(_)    -> raise(Failure "Break outside a for/while.")
         | ContinueInProgress(_) -> raise(Failure "Continue outside a for.")
 
+(* ============================== print interpreted AST ============================== *)
 
 let rec print_string_list (sl: string list): unit =
     match sl with
@@ -477,6 +478,28 @@ and print_expr_list (el: (expr list)): unit =
         print_expr_list tl
     )
 
+let rec print_printElement_list_interp (pel: printElement list): unit = 
+    match pel with
+    | [] -> ()
+    | hd::[] -> (
+        print_printElement_interp hd;
+        print_string "\n"
+    )
+    | hd::tl -> (
+        print_printElement_interp hd;
+        print_string ",";
+        print_printElement_list_interp tl
+    )
+
+and print_printElement_interp (pe: printElement): unit = 
+    match pe with
+    | PrintString(str) -> (
+        print_string str
+    )
+    | PrintExpr(e) -> (
+        print_expr e
+    )
+
 let rec print_statement_list (blk: block): unit =
     match blk with
     | [] -> ();
@@ -545,7 +568,8 @@ and print_statement (s: statement): unit =
         ()
     )
     | Print(elements) -> (
-        () (* TODO *)
+        print_string "print ";
+        print_printElement_list_interp elements
     )
     | String(str) -> (
         print_string str;
