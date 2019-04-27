@@ -1,0 +1,12 @@
+Menhir, build systems, and parser/lexer resources:
+https://v1.realworldocaml.org/v1/en/html/parsing-with-ocamllex-and-menhir.html
+http://gallium.inria.fr/~fpottier/menhir/manual.pdf
+http://gallium.inria.fr/~fpottier/menhir/
+https://arlencox.wordpress.com/2013/02/22/location-tracking-in-ocaml-parsers/
+https://stackoverflow.com/questions/40604749/how-to-use-menhir-error-messages-generation-via-ocamlbuild/40628622#40628622
+
+LLVM generation resources:
+https://llvm.org/docs/tutorial/OCamlLangImpl1.html
+https://gnuu.org/2009/09/18/writing-your-own-toy-compiler/
+https://stackoverflow.com/questions/36991472/llvm-tutorial-ocaml-compilation-error
+https://www.youtube.com/watch?v=OhkwPSvyBu0

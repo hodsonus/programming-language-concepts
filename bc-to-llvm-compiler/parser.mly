@@ -1,5 +1,5 @@
 %{
-    open Bc
+    open Types
 %}
 
 %token SEMICOLON
@@ -35,7 +35,7 @@
 %left AND OR
 %right EQ
 
-%type <Bc.statement list> main
+%type <Types.statement list> main
 %start main
 %%
 

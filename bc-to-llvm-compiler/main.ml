@@ -1,7 +1,10 @@
 open Lexing
 open Parser
 open Lexer
-open Bc
+
+open Evaluate
+open Generate
+open Print
 
 let filename = Sys.argv.(1)
 
