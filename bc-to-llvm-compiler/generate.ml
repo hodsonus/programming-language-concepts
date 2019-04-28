@@ -185,7 +185,53 @@ let rec generate_statement (s: statement): Llvm.llvalue =
         build_call fxn [|(generate_expr e)|] "calltmp" builder;
     )
     | If(cond, blkT, blkF) -> (
-        const_float double_type 0.0 (* TODO *)
+        let cond_val = generate_expr cond in 
+        let cond_bool_val = build_fcmp Fcmp.Une cond_val (const_float double_type 0.0) "cmptmp" builder in
+        
+        (* Grab the first block so that we might later add the conditional branch
+        * to it at the end of the function. *)
+        let start_bb = insertion_block builder in
+        let the_function = block_parent start_bb in
+
+        let then_bb = append_block context "then" the_function in
+
+        (* Emit 'then' value. *)
+        position_at_end then_bb builder;
+        let then_val = generate_statement_list blkT in
+
+        (* Codegen of 'then' can change the current block, update then_bb for the
+        * phi. We create a new name because one is used for the phi node, and the
+        * other is used for the conditional branch. *)
+        let new_then_bb = insertion_block builder in
+
+        (* Emit 'else' value. *)
+        let else_bb = append_block context "else" the_function in
+        position_at_end else_bb builder;
+        let else_val = generate_statement_list blkF in
+
+        (* Codegen of 'else' can change the current block, update else_bb for the
+        * phi. *)
+        let new_else_bb = insertion_block builder in
+
+        (* Emit merge block. *)
+        let merge_bb = append_block context "ifcont" the_function in
+        position_at_end merge_bb builder;
+        let incoming = [(then_val, new_then_bb); (else_val, new_else_bb)] in
+        let phi = build_phi incoming "iftmp" builder in
+
+        (* Return to the start block to add the conditional branch. *)
+        position_at_end start_bb builder;
+        ignore (build_cond_br cond_bool_val then_bb else_bb builder);
+
+        (* Set a unconditional branch at the end of the 'then' block and the
+        * 'else' block to the 'merge' block. *)
+        position_at_end new_then_bb builder; ignore (build_br merge_bb builder);
+        position_at_end new_else_bb builder; ignore (build_br merge_bb builder);
+
+        (* Finally, set the builder to the end of the merge block. *)
+        position_at_end merge_bb builder;
+
+        phi
     )
     | While(cond, blk) -> (
         const_float double_type 0.0 (* TODO *)
@@ -221,7 +267,7 @@ let rec generate_statement (s: statement): Llvm.llvalue =
 
 and generate_statement_list (sl: statement list): Llvm.llvalue =
     match sl with
-    | [] -> raise (Failure "statement list is empty")
+    | [] -> const_float double_type 0.0
     | hd::[] -> (
         generate_statement hd
     )
@@ -285,6 +331,6 @@ and codegen_func = function
 
 let generateCode (blk: block)  =
     enable_pretty_stacktrace();
-    ignore(codegen_proto( Prototype("printd", ["X"]))); (* declare the external print function in bindings.c *)
+    ignore(codegen_proto( Prototype("printd", ["X"]))); (* declare the external printd function in bindings.c *)
     ignore(codegen_func (Fxn ((Prototype ("", []), blk)))); (* Top level anonymous function *)
     print_string (string_of_llmodule the_module)
