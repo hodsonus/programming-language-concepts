@@ -16,6 +16,7 @@ tests/%.ll: tests/%.in main.byte
 	./main.byte $< > $@
 
 tests: main.byte $(OUT_FILES)
+	# cd ./tests/ && clang-4.0 *.ll
 	@echo "Done testing. Results in tests dir."
 
 parsingErrors.ml: handcrafted.messages parser.mly

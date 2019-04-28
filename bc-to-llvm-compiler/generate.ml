@@ -1,6 +1,6 @@
 open Types
 open Llvm
-open Llvm_analysis
+(* open Llvm_analysis *)
 open PassManager
 
 (* ============================== generate LLVM IR ============================== *)
@@ -11,8 +11,8 @@ let builder = builder context
 let named_values:(string, llvalue) Hashtbl.t = Hashtbl.create 10
 let double_type = double_type context
 
-type proto = Prototype of string * string array
-type func = Fxn of proto * statement
+type proto = Prototype of string * string list
+type func = Fxn of proto * statement list
 
 let rec generate_expr (e: expr): Llvm.llvalue =
     match e with
@@ -161,21 +161,17 @@ let rec generate_expr (e: expr): Llvm.llvalue =
         (const_float double_type 0.0)
     )
 
-(* and generate_expr_list (el: expr list): Llvm.llvalue list =
-and generate_expr_list (el: expr list): Llvm.llbasicblock  =
-    match el with
-    | [] -> raise (Error "empty expr list")
-    | hd::[] -> (
-        [generate_expr hd]
-    )
-    | hd::tl -> (
-        [generate_expr hd]@(generate_expr_list tl)
-    ) *)
-
 let rec generate_statement (s: statement): Llvm.llvalue =
     match s with
     | Expr(e) -> (
-        generate_expr e
+        (* a top level expression should always be printed, this is bc's bhv *)
+        (* this match should NEVER result in None, it should be primed with the extern printd fxn *)
+        let fxn =
+            match (lookup_function "printd" the_module) with
+            | Some callee -> callee
+            | None -> raise (Failure "invalid call to generate_statement")
+        in
+        build_call fxn [|(generate_expr e)|] "calltmp" builder;
     )
     | If(cond, blkT, blkF) -> (
         const_float double_type 0.0 (* TODO *)
@@ -205,19 +201,21 @@ let rec generate_statement (s: statement): Llvm.llvalue =
         const_float double_type 0.0 (* TODO *)
     )
 
-(* and generate_statement_list (sl: statement list): Llvm.llvalue = *)
-and generate_statement_list (sl: statement list): unit =
+and generate_statement_list (sl: statement list): Llvm.llvalue =
     match sl with
-    | [] -> ()
+    | [] -> raise (Failure "statement list is empty")
+    | hd::[] -> (
+        generate_statement hd
+    )
     | hd::tl -> (
-        codegen_func (Fxn ((Prototype ("", [||]), hd)));
+        generate_statement hd;
         generate_statement_list tl
     )
 
 and codegen_proto = function
     | Prototype (name, args) ->
       (* Make the function type: double(double,double) etc. *)
-      let doubles = Array.make (Array.length args) double_type in
+      let doubles = Array.make (List.length args) double_type in
       let ft = function_type double_type doubles in
       let f =
         match lookup_function name the_module with
@@ -238,7 +236,7 @@ and codegen_proto = function
 
       (* Set names for all arguments. *)
       Array.iteri (fun i a ->
-        let n = args.(i) in
+        let n = List.nth args i in
         set_value_name n a;
         Hashtbl.add named_values n a;
       ) (params f);
@@ -254,13 +252,13 @@ and codegen_func = function
       position_at_end bb builder;
 
       try
-        let ret_val = generate_statement body in
+        let ret_val = generate_statement_list body in
 
         (* Finish off the function. *)
         let _ = build_ret ret_val builder in
 
         (* Validate the generated code, checking for consistency. *)
-        (* Llvm_analysis.assert_valid_function the_function; *)
+        (* Llvm_analysis.assert_valid_function the_function; TODO *)
 
         the_function
       with e ->
@@ -269,5 +267,6 @@ and codegen_func = function
 
 let generateCode (blk: block)  =
     enable_pretty_stacktrace();
-    generate_statement_list blk;
+    codegen_proto( Prototype("printd", ["X"])); (* declare the external print function in bindings.c *)
+    codegen_func (Fxn ((Prototype ("", []), blk))); (* Top level anonymous function *)
     print_string (string_of_llmodule the_module)
