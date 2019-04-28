@@ -1,6 +1,5 @@
 open Types
 open Llvm
-(* open Llvm_analysis *)
 open PassManager
 
 (* ============================== generate LLVM IR ============================== *)
@@ -152,8 +151,20 @@ let rec generate_expr (e: expr): Llvm.llvalue =
             Hashtbl.add named_values vName ex_val;
             ex_val
     )
-    | FCall(str, el) -> (
-        (const_float double_type 0.0) (* TODO *)
+    | FCall(str, args) -> (
+        (* Look up the name in the module table. *)
+        let callee =
+            match lookup_function str the_module with
+            | Some callee -> callee
+            | None -> raise (Failure "unknown function referenced")
+        in
+        let params = params callee in
+
+        (* If argument mismatch error. *)
+        if Array.length params == List.length args then () else
+            raise (Failure "incorrect # arguments passed");
+        let args = Array.map generate_expr (Array.of_list args) in
+            build_call callee args "calltmp" builder
     )
     | ExprNone() -> (
         (* Used only in the representation of a return with no value attached, we
@@ -183,10 +194,15 @@ let rec generate_statement (s: statement): Llvm.llvalue =
         const_float double_type 0.0 (* TODO *)
     )
     | FDef(f,params,blk) -> (
-        const_float double_type 0.0 (* TODO *)
+        (* TODO, this logic probably needs to be extracted out so that we can 
+        define functions outside of the global anonymous function's space *)
+
+        (* generate code for the function definition *)
+        codegen_func (Fxn ((Prototype (f, params), blk)))
     )
     | Return(e) -> (
-        const_float double_type 0.0 (* TODO *)
+        let ret_val = generate_expr e in
+            build_ret ret_val builder
     )
     | Break() -> (
         const_float double_type 0.0 (* TODO *)
@@ -195,10 +211,12 @@ let rec generate_statement (s: statement): Llvm.llvalue =
         const_float double_type 0.0 (* TODO *)
     )
     | Print(elements) -> (
-        const_float double_type 0.0 (* TODO *)
+        (* TODO, the below needs to be implemented in order to implement this *)
+        const_float double_type 0.0
     )
     | String(str) -> (
-        const_float double_type 0.0 (* TODO *)
+        (* TODO, construct an external print string method in bindings.c and call it here *)
+        const_float double_type 0.0
     )
 
 and generate_statement_list (sl: statement list): Llvm.llvalue =
@@ -208,7 +226,7 @@ and generate_statement_list (sl: statement list): Llvm.llvalue =
         generate_statement hd
     )
     | hd::tl -> (
-        generate_statement hd;
+        ignore(generate_statement hd);
         generate_statement_list tl
     )
 
@@ -258,7 +276,7 @@ and codegen_func = function
         let _ = build_ret ret_val builder in
 
         (* Validate the generated code, checking for consistency. *)
-        (* Llvm_analysis.assert_valid_function the_function; TODO *)
+        Llvm_analysis.assert_valid_function the_function;
 
         the_function
       with e ->
@@ -267,6 +285,6 @@ and codegen_func = function
 
 let generateCode (blk: block)  =
     enable_pretty_stacktrace();
-    codegen_proto( Prototype("printd", ["X"])); (* declare the external print function in bindings.c *)
-    codegen_func (Fxn ((Prototype ("", []), blk))); (* Top level anonymous function *)
+    ignore(codegen_proto( Prototype("printd", ["X"]))); (* declare the external print function in bindings.c *)
+    ignore(codegen_func (Fxn ((Prototype ("", []), blk)))); (* Top level anonymous function *)
     print_string (string_of_llmodule the_module)

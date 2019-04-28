@@ -1,4 +1,5 @@
 *.out
 *.ll
+*.bc
 main.byte
 parserErrors.mly

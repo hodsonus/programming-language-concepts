@@ -16,11 +16,11 @@ tests/%.ll: tests/%.in main.byte
 	./main.byte $< > $@
 
 tests: main.byte $(OUT_FILES)
-	# cd ./tests/ && clang-4.0 *.ll
+	# cd ./tests && llvm-as *.ll && clang -o *.bc
 	@echo "Done testing. Results in tests dir."
 
 parsingErrors.ml: handcrafted.messages parser.mly
 	menhir --compile-errors handcrafted.messages parser.mly > parsingErrors.ml
 
-OPTIONS = -use-menhir -use-ocamlfind -pkgs core,menhirLib,llvm -yaccflag --table
+OPTIONS = -use-menhir -use-ocamlfind -pkgs core,menhirLib,llvm,llvm.analysis -yaccflag --table
 TAGS = -tag thread
