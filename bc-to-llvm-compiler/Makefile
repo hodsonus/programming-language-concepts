@@ -1,5 +1,7 @@
 IN_FILES=$(wildcard tests/*.in)
-OUT_FILES=$(IN_FILES:.in=.ll)
+LL_FILES=$(IN_FILES:.in=.ll)
+BC_FILES=$(IN_FILES:.ll=.bc)
+OUT_FILES=$(IN_FILES:.in=.out)
 
 default: main.byte
 
@@ -7,6 +9,10 @@ clean:
 	rm -f main.byte
 	rm -fr _build/
 	rm -rf tests/*.ll
+	rm -rf tests/*.bc
+	rm -rf tests/*.out
+	rm *.out
+	rm -f *.o
 	rm -f parsingErrors.ml
 
 main.byte:
@@ -15,8 +21,11 @@ main.byte:
 tests/%.ll: tests/%.in main.byte
 	./main.byte $< > $@
 
-tests: main.byte $(OUT_FILES)
-	# cd ./tests && llvm-as *.ll && clang -o *.bc
+tests: main.byte $(LL_FILES)
+	llvm-as tests/*.ll && clang tests/*.bc bindings.c
+	# chmod +x $(OUT_FILES)
+	# chmod 755 $(OUT_FILES)
+	# $(OUT_FILES)
 	@echo "Done testing. Results in tests dir."
 
 parsingErrors.ml: handcrafted.messages parser.mly

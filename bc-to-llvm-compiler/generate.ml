@@ -309,28 +309,44 @@ and codegen_proto = function
 and codegen_func = function
   | Fxn (proto, body) ->
       Hashtbl.clear named_values;
+
       let the_function = codegen_proto proto in
 
-      (* Create a new basic block to start insertion into. *)
-      let bb = append_block context "entry" the_function in
-      position_at_end bb builder;
+        (* Create a new basic block to start insertion into. *)
+        let bb = append_block context "entry" the_function in
+        position_at_end bb builder;
 
-      try
-        let ret_val = generate_statement_list body in
+        try
+            let ret_val = generate_statement_list body in
 
-        (* Finish off the function. *)
-        let _ = build_ret ret_val builder in
+                if (string_of_lltype (type_of ret_val)) = "double" then
+                    ignore(build_ret ret_val builder);
 
-        (* Validate the generated code, checking for consistency. *)
-        Llvm_analysis.assert_valid_function the_function;
+                (* Validate the generated code, checking for consistency. *)
+                Llvm_analysis.assert_valid_function the_function;
 
-        the_function
-      with e ->
-        delete_function the_function;
-        raise e
+                the_function
+        with e ->
+            delete_function the_function;
+            raise e
+
+let rec extractFxnDefs (fxnDefs: statement list) (otherStatements: statement list) (blk: statement list) =
+    match blk with
+    | [] -> fxnDefs,otherStatements
+    | hd::tl -> (
+        match hd with
+        | FDef(_,_,_) -> (
+            extractFxnDefs (fxnDefs@[hd]) otherStatements tl
+        )
+        | _ -> (
+            extractFxnDefs fxnDefs (otherStatements@[hd]) tl
+        )
+    )
 
 let generateCode (blk: block)  =
     enable_pretty_stacktrace();
     ignore(codegen_proto( Prototype("printd", ["X"]))); (* declare the external printd function in bindings.c *)
-    ignore(codegen_func (Fxn ((Prototype ("", []), blk)))); (* Top level anonymous function *)
-    print_string (string_of_llmodule the_module)
+    let fxnDefs,otherStatements = extractFxnDefs [] [] blk in (* extract all the function definitions in the top level main function (cannot have nested fucntions) *)
+        ignore(generate_statement_list fxnDefs); (* generate the functions that were extracted *)
+        ignore(codegen_func (Fxn ((Prototype ("main", []), otherStatements)))); (* Top level anonymous function *)
+        print_string (string_of_llmodule the_module)
