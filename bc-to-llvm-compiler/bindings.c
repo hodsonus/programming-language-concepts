@@ -8,7 +8,8 @@ extern double printdub(double X) {
 }
 
 extern double putchar_wrap(char str[]) {
-  putchar(str);
-  // printf("%c", str); TODO
+  /* TODO, this is super fragile and i dont know why. Generates what SEEMS to
+  be a harmless warning, not sure */
+  printf("%c", str);
   return 0.0;
 }
