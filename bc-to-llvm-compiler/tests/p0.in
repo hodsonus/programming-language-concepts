@@ -1,8 +1,22 @@
-i=4;;
-1+i;;
-if (i < 10) 2+2;
-if (i > 10) 3+6;
+i=10.123456;;
+;;
+;
+if (i < 10) {
+    2+2;
+}
+else {
+    3+6;
+}
+a(1,i,3);
+
 define a(x,y,z) {
     return 1*x+2*y+3*z;
 }
-a(1,2,3)
+
+define b(j,k,l) {
+    return 0;
+}
+
+b(10,9,8);
+
+"hi amelia";

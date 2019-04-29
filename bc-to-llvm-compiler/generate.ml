@@ -5,7 +5,7 @@ open PassManager
 (* ============================== generate LLVM IR ============================== *)
 
 let context = global_context ()
-let the_module = create_module context "my cool jit"
+let the_module = create_module context "my cool compiler :)"
 let builder = builder context
 let named_values:(string, llvalue) Hashtbl.t = Hashtbl.create 10
 let double_type = double_type context
@@ -172,17 +172,13 @@ let rec generate_expr (e: expr): Llvm.llvalue =
         (const_float double_type 0.0)
     )
 
-let rec generate_statement (s: statement): Llvm.llvalue =
+and generate_statement (s: statement): Llvm.llvalue =
     match s with
     | Expr(e) -> (
         (* a top level expression should always be printed, this is bc's bhv *)
-        (* this match should NEVER result in None, it should be primed with the extern printd fxn *)
-        let fxn =
-            match (lookup_function "printd" the_module) with
-            | Some callee -> callee
-            | None -> raise (Failure "invalid call to generate_statement")
-        in
-        build_call fxn [|(generate_expr e)|] "calltmp" builder;
+        let ret_value = generate_print_double e in 
+            ignore(generate_print_string "");
+            ret_value
     )
     | If(cond, blkT, blkF) -> (
         let cond_val = generate_expr cond in 
@@ -240,9 +236,6 @@ let rec generate_statement (s: statement): Llvm.llvalue =
         const_float double_type 0.0 (* TODO *)
     )
     | FDef(f,params,blk) -> (
-        (* TODO, this logic probably needs to be extracted out so that we can 
-        define functions outside of the global anonymous function's space *)
-
         (* generate code for the function definition *)
         codegen_func (Fxn ((Prototype (f, params), blk)))
     )
@@ -257,11 +250,11 @@ let rec generate_statement (s: statement): Llvm.llvalue =
         const_float double_type 0.0 (* TODO *)
     )
     | Print(elements) -> (
-        (* TODO, the below needs to be implemented in order to implement this *)
-        const_float double_type 0.0
+        generate_print_elements elements
     )
     | String(str) -> (
-        (* TODO, construct an external print string method in bindings.c and call it here *)
+        (* a top level string should be printed, this is bc's bhv *)
+        ignore(generate_print_string str);
         const_float double_type 0.0
     )
 
@@ -330,6 +323,51 @@ and codegen_func = function
             delete_function the_function;
             raise e
 
+and generate_print_string str = 
+    (* this match should NEVER result in None, it should be primed with the extern fxn *)
+    match (lookup_function "putchar_wrap" the_module) with
+    | Some(f) -> (
+        let my_str = (str^"\n") in
+            String.iter (fun a ->
+                ignore(build_call f [|(const_string context (String.make 1 (a)))|] "calltmp" builder);
+            ) (my_str);
+            const_float double_type 0.0
+    )
+    | None -> raise (Failure "invalid call to generate_statement")
+
+and generate_print_double e = 
+    (* this match should NEVER result in None, it should be primed with the extern fxn *)
+    let fxn =
+        match (lookup_function "printdub" the_module) with
+        | Some callee -> callee
+        | None -> raise (Failure "invalid call to generate_statement")
+    in
+    build_call fxn [|(generate_expr e)|] "calltmp" builder
+
+and generate_print_elements elements =
+    match elements with
+    | [] -> const_float double_type 0.0
+    | hd::[] -> (
+        match hd with
+        | PrintString(str) -> (
+            generate_print_string str
+        )
+        | PrintExpr(e) -> (
+            generate_print_double e
+        )
+    )
+    | hd::tl -> (
+        match hd with
+        | PrintString(str) -> (
+            ignore(generate_print_string str);
+            generate_print_elements tl
+        )
+        | PrintExpr(e) -> (
+            ignore(generate_print_double e);
+            generate_print_elements tl
+        )
+    )
+
 let rec extractFxnDefs (fxnDefs: statement list) (otherStatements: statement list) (blk: statement list) =
     match blk with
     | [] -> fxnDefs,otherStatements
@@ -343,10 +381,15 @@ let rec extractFxnDefs (fxnDefs: statement list) (otherStatements: statement lis
         )
     )
 
+let setupPrintFxn = 
+    let ft = function_type (double_type) (Array.make (1) (array_type (i8_type context) 1)) in
+        ignore(declare_function "putchar_wrap" ft the_module)
+
 let generateCode (blk: block)  =
     enable_pretty_stacktrace();
-    ignore(codegen_proto( Prototype("printd", ["X"]))); (* declare the external printd function in bindings.c *)
-    let fxnDefs,otherStatements = extractFxnDefs [] [] blk in (* extract all the function definitions in the top level main function (cannot have nested fucntions) *)
+    setupPrintFxn;
+    ignore(codegen_proto( Prototype("printdub", ["X"]))); (* declare the external printdub function in bindings.c *)
+    let fxnDefs,otherStatements = extractFxnDefs [] [] blk in (* extract all the function definitions in the top level main function (cannot have nested functions) *)
         ignore(generate_statement_list fxnDefs); (* generate the functions that were extracted *)
-        ignore(codegen_func (Fxn ((Prototype ("main", []), otherStatements)))); (* Top level anonymous function *)
+        ignore(codegen_func (Fxn ((Prototype ("main", []), otherStatements)))); (* Top level main function *)
         print_string (string_of_llmodule the_module)

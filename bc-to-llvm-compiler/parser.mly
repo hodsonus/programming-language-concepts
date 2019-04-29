@@ -105,7 +105,7 @@ fxnArgs:
 
 ifStatement:
 | IF LEFT_PAR expr RIGHT_PAR NL? block                { If($3, $6, []) }
-| IF LEFT_PAR expr RIGHT_PAR NL? block ELSE NL? block { If($3, $6, $9) };
+| IF LEFT_PAR expr RIGHT_PAR NL? block NL? ELSE NL? block { If($3, $6, $10) };
 
 statement: 
 | expr                                                                { Expr($1) }
