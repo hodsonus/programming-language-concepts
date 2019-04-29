@@ -6,12 +6,15 @@ open PassManager
 
 let context = global_context ()
 let the_module = create_module context "my cool compiler :)"
+let the_fpm = PassManager.create_function the_module
 let builder = builder context
 let named_values:(string, llvalue) Hashtbl.t = Hashtbl.create 10
 let double_type = double_type context
 
 type proto = Prototype of string * string list
 type func = Fxn of proto * statement list
+
+(* ===== generation functions ===== *)
 
 let rec generate_expr (e: expr): Llvm.llvalue =
     match e with
@@ -93,7 +96,12 @@ let rec generate_expr (e: expr): Llvm.llvalue =
                                 build_uitofp int_res double_type "booltmp" builder
                 )
                 | "^" -> (
-                    (const_float double_type 0.0) (* TODO *)
+                    let fxn =
+                        match (lookup_function "pow" the_module) with
+                        | Some callee -> callee
+                        | None -> raise (Failure "invalid call to generate_statement")
+                    in
+                    build_call fxn (Array.append [|el_val|] [|er_val|]) "calltmp" builder
                 )
                 | "<=" -> (
                     (* unordered or less than or equal comparison that is cast to floating point *)
@@ -145,7 +153,8 @@ let rec generate_expr (e: expr): Llvm.llvalue =
                 | _ -> raise(Failure ("Unknown binary operator `" ^ op ^ "`."))
     )
     | Assign(vName, ex) -> (
-        (* TODO, verify that this is correct behavior - no local vars? *)
+        (* local vars are still valid, as every time we generate a new function
+         body we wipe the table clean *)
         let ex_val = generate_expr ex in
             set_value_name vName ex_val;
             Hashtbl.add named_values vName ex_val;
@@ -177,7 +186,7 @@ and generate_statement (s: statement): Llvm.llvalue =
     | Expr(e) -> (
         (* a top level expression should always be printed, this is bc's bhv *)
         let ret_value = generate_print_double e in 
-            ignore(generate_print_string "");
+            ignore(generate_print_string "\n");
             ret_value
     )
     | If(cond, blkT, blkF) -> (
@@ -232,8 +241,53 @@ and generate_statement (s: statement): Llvm.llvalue =
     | While(cond, blk) -> (
         const_float double_type 0.0 (* TODO *)
     )
-    | For(init,cond,upd,blk) -> (
-        const_float double_type 0.0 (* TODO *)
+    | For(init,cond,upd,body) -> (
+        (* init is generated in the preceding block - should not be in the body of the loop *)
+        let var_name = 
+            match init with
+            | Assign(str, e) -> str
+            | _ -> raise (Failure "must be an assignment for the initialization of the loop")
+        in
+
+        let init_val = generate_expr init in
+            (* get parent block that we will be placing the loop in *)
+            let preheader_bb = insertion_block builder in
+            (* get the function that we are inserting into *)
+            let the_function = block_parent preheader_bb in
+            (* append a new loop block to the function - this is the body of the loop *)
+            let loop_bb = append_block context "loop" the_function in
+
+            (* add a branch to the loop_bb from the parent block *)
+            ignore (build_br loop_bb builder);
+
+            (* start insertion in loop_bb. *)
+            position_at_end loop_bb builder;
+
+            (* Start the PHI node with an entry for start. *)
+            let variable = build_phi [(init_val, preheader_bb)] var_name builder in
+
+            (* shadow the loop variable *)
+            Hashtbl.add named_values var_name variable;
+            
+            ignore (generate_statement_list body);
+            
+            let upd_val = generate_expr upd in
+
+            (* Create the "after loop" block and insert it. *)
+            let loop_end_bb = insertion_block builder in
+            let after_bb = append_block context "afterloop" the_function in
+            (* Insert the conditional branch into the end of loop_end_bb. *)
+            let cond_val = generate_expr cond in
+            let cond_bool_val = build_fcmp Fcmp.Une cond_val (const_float double_type 0.0) "cmptmp" builder in
+            ignore (build_cond_br cond_bool_val loop_bb after_bb builder);
+
+            (* Any new code will be inserted in after_bb. *)
+            position_at_end after_bb builder;
+
+            (* Add a new entry to the PHI node for the backedge. *)
+            add_incoming (upd_val, loop_end_bb) variable;
+
+        const_float double_type 0.0
     )
     | FDef(f,params,blk) -> (
         (* generate code for the function definition *)
@@ -250,7 +304,9 @@ and generate_statement (s: statement): Llvm.llvalue =
         const_float double_type 0.0 (* TODO *)
     )
     | Print(elements) -> (
-        generate_print_elements elements
+        let ret_value = generate_print_elements elements in
+            ignore(generate_print_string "\n");
+            ret_value
     )
     | String(str) -> (
         (* a top level string should be printed, this is bc's bhv *)
@@ -318,31 +374,12 @@ and codegen_func = function
                 (* Validate the generated code, checking for consistency. *)
                 Llvm_analysis.assert_valid_function the_function;
 
+                let _ = PassManager.run_function the_function the_fpm in
+
                 the_function
         with e ->
             delete_function the_function;
             raise e
-
-and generate_print_string str = 
-    (* this match should NEVER result in None, it should be primed with the extern fxn *)
-    match (lookup_function "putchar_wrap" the_module) with
-    | Some(f) -> (
-        let my_str = (str^"\n") in
-            String.iter (fun a ->
-                ignore(build_call f [|(const_string context (String.make 1 (a)))|] "calltmp" builder);
-            ) (my_str);
-            const_float double_type 0.0
-    )
-    | None -> raise (Failure "invalid call to generate_statement")
-
-and generate_print_double e = 
-    (* this match should NEVER result in None, it should be primed with the extern fxn *)
-    let fxn =
-        match (lookup_function "printdub" the_module) with
-        | Some callee -> callee
-        | None -> raise (Failure "invalid call to generate_statement")
-    in
-    build_call fxn [|(generate_expr e)|] "calltmp" builder
 
 and generate_print_elements elements =
     match elements with
@@ -368,6 +405,30 @@ and generate_print_elements elements =
         )
     )
 
+and generate_print_string str = 
+    (* this match should NEVER result in None, it should be primed with the extern fxn *)
+    match (lookup_function "putchar_wrap" the_module) with
+    | Some(f) -> (
+        let my_str = (str) in
+            String.iter (fun a ->
+                ignore(build_call f [|(const_string context (String.make 1 (a)))|] "calltmp" builder);
+            ) (my_str);
+            const_float double_type 0.0
+    )
+    | None -> raise (Failure "invalid call to generate_statement")
+
+and generate_print_double e = 
+    (* this match should NEVER result in None, it should be primed with the extern fxn *)
+    let fxn =
+        match (lookup_function "printdub" the_module) with
+        | Some callee -> callee
+        | None -> raise (Failure "invalid call to generate_statement")
+    in
+    build_call fxn [|(generate_expr e)|] "calltmp" builder
+
+
+ (* ===== primary functions ===== *)
+
 let rec extractFxnDefs (fxnDefs: statement list) (otherStatements: statement list) (blk: statement list) =
     match blk with
     | [] -> fxnDefs,otherStatements
@@ -381,14 +442,15 @@ let rec extractFxnDefs (fxnDefs: statement list) (otherStatements: statement lis
         )
     )
 
-let setupPrintFxn = 
-    let ft = function_type (double_type) (Array.make (1) (array_type (i8_type context) 1)) in
-        ignore(declare_function "putchar_wrap" ft the_module)
-
 let generateCode (blk: block)  =
     enable_pretty_stacktrace();
-    setupPrintFxn;
-    ignore(codegen_proto( Prototype("printdub", ["X"]))); (* declare the external printdub function in bindings.c *)
+    (* declare the external printdub function in bindings.c *)
+    ignore(codegen_proto( Prototype("printdub", ["X"])));
+    (* declare the external pow function in math.h *)
+    ignore(codegen_proto( Prototype("pow", ["X"]@["Y"])));
+    (* declare the external putchar_wrap function in bindings.c *)
+    let ft = function_type (double_type) (Array.make (1) (array_type (i8_type context) 1)) in
+        ignore(declare_function "putchar_wrap" ft the_module);
     let fxnDefs,otherStatements = extractFxnDefs [] [] blk in (* extract all the function definitions in the top level main function (cannot have nested functions) *)
         ignore(generate_statement_list fxnDefs); (* generate the functions that were extracted *)
         ignore(codegen_func (Fxn ((Prototype ("main", []), otherStatements)))); (* Top level main function *)

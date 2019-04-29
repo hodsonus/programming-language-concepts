@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 
 /* printd - printf that takes a double prints it as "%f\n", returning the value. */
 extern double printdub(double X) {

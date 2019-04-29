@@ -29,7 +29,7 @@
 
 %left PLUS MINUS MOD
 %left TIMES DIV
-%left POW
+%right POW
 %left LTE LT GTE GT EQEQ NE
 %right NOT
 %left AND OR
