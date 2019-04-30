@@ -1,1 +1,20 @@
-i=0
+a(2,i,b(1,2,3));
+
+define a(x,y,z) {
+    return 1*x+2*y+3*z;
+}
+
+define b(j,k,l) {
+    return 0;
+}
+
+define factorial(a) {
+    if (a <= 0) {
+        b= 1;
+    } else {
+        b= a * factorial(a-1)
+    }
+    return b;
+}
+
+print "fact: ",factorial(10)

@@ -163,8 +163,9 @@ and print_statement (s: statement): unit =
         ()
     )
     | Print(elements) -> (
-        print_string "print ";
-        print_printElement_list_interp elements
+        print_string "print (";
+        print_printElement_list_interp elements;
+        print_string ")";
     )
     | String(str) -> (
         print_string str;

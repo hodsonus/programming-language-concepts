@@ -1,6 +1,21 @@
-for (i=1; i < 10; i++) {
-    i^2;;
+print "1<=2: ", 1<=2
+
+print "2<=1: ", 2<=1
+
+a = -1;
+if (a < 0) {
+    print "its negative"
 }
+else if (a < 4) {
+    print "its less than 5..."
+}
+else {
+    print "its huge!"
+}
+
+2+2;;
+
+3^2
 
 i=10.123456;;
 ;;
@@ -11,16 +26,22 @@ if (i < 10) {
 else {
     3+6;
 }
-a(1,i,3);
 
-define a(x,y,z) {
-    return 1*x+2*y+3*z;
-}
+if(1.0) {} else {}
 
-define b(j,k,l) {
-    return 0;
-}
 
-b(10,9,8);
-2+2;;
-print 2+2, 4+4, "it works!",2.0+2;;
+if (1+2) 
+{
+    
+    2+6
+    
+    
+    2+2} else{
+
+
+        ;;
+
+
+        3+4;;
+        3+6;
+    }

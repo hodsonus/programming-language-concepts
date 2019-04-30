@@ -15,6 +15,10 @@ type proto = Prototype of string * string list
 type func = Fxn of proto * statement list
 
 (* ===== generation functions ===== *)
+let rec generate_var (vName: string): Llvm.llvalue = 
+    (* If we cannot find it, then it is 0 (bc's behavior) *)
+    (try Hashtbl.find named_values vName with
+    | Not_found -> (const_float double_type 0.0))
 
 let rec generate_expr (e: expr): Llvm.llvalue =
     match e with
@@ -22,9 +26,7 @@ let rec generate_expr (e: expr): Llvm.llvalue =
         const_float double_type flt
     )
     | Var(vName) -> (
-        (* If we cannot find it, then it is 0 (bc's behavior) *)
-        (try Hashtbl.find named_values vName with
-        | Not_found -> (const_float double_type 0.0))
+        generate_var vName
     )
     | Op1(op, e2) -> (
         let e2_val = generate_expr e2 in
@@ -238,11 +240,64 @@ and generate_statement (s: statement): Llvm.llvalue =
 
         phi
     )
-    | While(cond, blk) -> (
-        const_float double_type 0.0 (* TODO *)
+    | While(cond, body) -> (
+        (* TODO - doesnt work properly *)
+
+        (* get parent block that we will be placing the loop in *)
+        let preheader_bb = insertion_block builder in
+        (* get the function that we are inserting into *)
+        let the_function = block_parent preheader_bb in
+        (* append a new loop block to the function - this is the body of the loop *)
+        let loop_bb = append_block context "loop" the_function in
+
+        let init_cond_val = generate_expr cond in
+        let init_cond_bool_val = build_fcmp Fcmp.Une init_cond_val (const_float double_type 0.0) "cmptmp" builder in
+
+        (* add a branch to the loop_bb from the parent block *)
+        ignore (build_br loop_bb builder);
+
+        (* start insertion in loop_bb. *)
+        position_at_end loop_bb builder;
+
+        (* Start the PHI node with an entry for start.  *)
+        let cond_phi = build_phi [(init_cond_bool_val, preheader_bb)] "condition" builder in
+
+        (* shadow the loop variable *)
+        (* let old_val =
+            try Some (Hashtbl.find named_values var_name) with Not_found -> None
+        in
+        Hashtbl.add named_values var_name variable; *)
+        
+        ignore (generate_statement_list body);
+        
+        (* let upd_val = generate_expr upd in *)
+
+        (* Create the "after loop" block and insert it. *)
+        let loop_end_bb = insertion_block builder in
+        let after_bb = append_block context "afterloop" the_function in
+        (* Insert the conditional branch into the end of loop_end_bb. *)
+        let cond_val = generate_expr cond in
+        let cond_bool_val = build_fcmp Fcmp.Une cond_val (const_float double_type 0.0) "cmptmp" builder in
+
+        (* Add a new entry to the PHI node for the backedge. *)
+        add_incoming (cond_bool_val, loop_end_bb) cond_phi;
+
+        ignore (build_cond_br cond_phi loop_bb after_bb builder);
+
+        (* Any new code will be inserted in after_bb. *)
+        position_at_end after_bb builder;
+
+        (* Restore the unshadowed variable. *)
+        (* begin match old_val with
+        | Some old_val -> Hashtbl.add named_values var_name old_val
+        | None -> ()
+        end; *)
+
+        const_float double_type 0.0
     )
     | For(init,cond,upd,body) -> (
         (* init is generated in the preceding block - should not be in the body of the loop *)
+        (* TODO , loops iterate one too many iterations *)
         let var_name = 
             match init with
             | Assign(str, e) -> str
@@ -267,6 +322,9 @@ and generate_statement (s: statement): Llvm.llvalue =
             let variable = build_phi [(init_val, preheader_bb)] var_name builder in
 
             (* shadow the loop variable *)
+            let old_val =
+                try Some (Hashtbl.find named_values var_name) with Not_found -> None
+            in
             Hashtbl.add named_values var_name variable;
             
             ignore (generate_statement_list body);
@@ -287,6 +345,12 @@ and generate_statement (s: statement): Llvm.llvalue =
             (* Add a new entry to the PHI node for the backedge. *)
             add_incoming (upd_val, loop_end_bb) variable;
 
+            (* Restore the unshadowed variable. *)
+            begin match old_val with
+            | Some old_val -> Hashtbl.add named_values var_name old_val
+            | None -> ()
+            end;
+
         const_float double_type 0.0
     )
     | FDef(f,params,blk) -> (
@@ -298,10 +362,10 @@ and generate_statement (s: statement): Llvm.llvalue =
             build_ret ret_val builder
     )
     | Break() -> (
-        const_float double_type 0.0 (* TODO *)
+        raise (Failure "no implementation exists for break statements yet") (* TODO *)
     )
     | Continue() -> (
-        const_float double_type 0.0 (* TODO *)
+        raise (Failure "no implementation exists for continue statements yet") (* TODO *)
     )
     | Print(elements) -> (
         let ret_value = generate_print_elements elements in
@@ -310,7 +374,7 @@ and generate_statement (s: statement): Llvm.llvalue =
     )
     | String(str) -> (
         (* a top level string should be printed, this is bc's bhv *)
-        ignore(generate_print_string str);
+        ignore(generate_print_string (str^"\n"));
         const_float double_type 0.0
     )
 

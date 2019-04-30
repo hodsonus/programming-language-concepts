@@ -45,9 +45,10 @@ delim:
 | NL        {}
 | SEMICOLON {};
 
+/* TODO, shift reduce conflicts are generated here */
 statementList:
 | statement delim+ statementList { [$1]@$3 }
-| statement delim*               { [$1] }
+| statement delim*               { [$1] } 
 | delim* statementList           { $2 }
 
 numArgList:
@@ -97,14 +98,15 @@ expr:
 
 block:
 | statement delim                      { [$1] }
-| LEFT_BRACE statementList RIGHT_BRACE { $2 };
+| LEFT_BRACE statementList RIGHT_BRACE { $2 }
+| LEFT_BRACE RIGHT_BRACE { [] };
 
 fxnArgs:
 | LEFT_PAR fxnArgList RIGHT_PAR { $2 }
 | LEFT_PAR RIGHT_PAR            { [] };
 
 ifStatement:
-| IF LEFT_PAR expr RIGHT_PAR NL? block                { If($3, $6, []) }
+| IF LEFT_PAR expr RIGHT_PAR NL? block                    { If($3, $6, []) }
 | IF LEFT_PAR expr RIGHT_PAR NL? block NL? ELSE NL? block { If($3, $6, $10) };
 
 statement: 
