@@ -1,3 +1,15 @@
+John Hodson
+Spring 2019
+Programming Language Concepts
+Professor Alin Dobra
+
+A lot of features are working - but not all. Basic arithmetic, functions, for loops, if statements, and print statements all work.
+However, I was unable to get while loops and recursion working. I don't need the credit for this assignment and completed it for 
+the sake of learning and to show to Professor Dobra.
+
+To run my OCaml LLVM generator, compile the LLVM with clang, and run the compiled program, simply call "make" from the project root.
+All output will be printed to the standard console.
+
 Menhir, build systems, and parser/lexer resources:
 https://v1.realworldocaml.org/v1/en/html/parsing-with-ocamllex-and-menhir.html
 http://gallium.inria.fr/~fpottier/menhir/manual.pdf
